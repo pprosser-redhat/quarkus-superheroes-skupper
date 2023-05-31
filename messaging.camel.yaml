@@ -1,0 +1,22 @@
+- route:
+    id: route-51ad
+    from:
+      uri: kamelet:timer-source
+      id: from-d428
+      parameters:
+        period: 2
+        message: hello
+      steps:
+        - setBody:
+            id: setBody-050d
+            expression:
+              simple:
+                expression: '"Hello from Intel"'
+                id: simple-2f21
+        - to:
+            uri: kamelet:jms-amqp-10-sink
+            id: to-5f7a
+            parameters:
+              destinationType: topic
+              destinationName: bintopic
+              remoteURI: amqp://messaging:5672

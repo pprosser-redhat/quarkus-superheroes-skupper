@@ -1,0 +1,221 @@
+- route:
+    id: route-31bc
+    from:
+      uri: kamelet:kafka-source
+      id: from-4592
+      parameters:
+        bootstrapServers: my-cluster-kafka-bootstrap.superheroes.svc:9092
+        topic: philsmac.phil.hero
+        user: test
+        password: test
+        securityProtocol: PLAINTEXT
+        consumerGroup: customers4
+        autoCommitEnable: true
+        autoOffsetReset: earliest
+      steps:
+        - log:
+            message: '"Boom, a message ${body}"'
+            id: log-9b74
+            loggingLevel: INFO
+        - choice:
+            when:
+              - id: when-6f94
+                expression:
+                  simple:
+                    expression: ${body} != null
+                    id: simple-6ea9
+                steps:
+                  - setHeader:
+                      name: operation
+                      id: setHeader-64d1
+                      expression:
+                        jsonpath:
+                          expression: $.payload.op
+                          id: jsonpath-dc29
+                      description: get operation value
+                  - setHeader:
+                      name: snapshot
+                      id: setHeader-1145
+                      expression:
+                        jsonpath:
+                          expression: $.payload.source.snapshot
+                          id: jsonpath-4564
+                      description: get snapshot value
+                  - to:
+                      uri: direct:WorkOutWhatToDo
+                      id: to-88d9
+                      description: How do I talk to the DB
+                  - marshal:
+                      id: marshal-8207
+                      json:
+                        id: json-22ed
+                        library: jackson
+                  - log:
+                      message: done
+                      id: log-0068
+                  - choice:
+                      when:
+                        - id: when-c579
+                          expression:
+                            simple:
+                              expression: ${header.operation} == 'u'
+                              id: simple-ae94
+                          description: Update Hero
+                          steps:
+                            - to:
+                                uri: kamelet:postgresql-sink
+                                id: to-97da
+                                parameters:
+                                  query: >-
+                                    UPDATE hero SET level = :#level, name =
+                                    :#name, othername = :#othername, picture =
+                                    :#picture, powers = :#powers  WHERE id =
+                                    :#id
+                                  databaseName: heroes_database
+                                  serverName: heroes-db.default.svc.cluster.local
+                                  serverPort: 5432
+                                  username: superman
+                                  password: superman
+                                description: update DB
+                        - id: when-6bc7
+                          expression:
+                            simple:
+                              expression: ${header.operation} == 'c'
+                              id: simple-8a4b
+                          description: Create a new Hero
+                          steps:
+                            - to:
+                                uri: kamelet:postgresql-sink
+                                id: to-198b
+                                parameters:
+                                  query: >-
+                                    INSERT INTO hero (id, level, name,
+                                    othername, picture, powers) VALUES (:#id,
+                                    :#level, :#name, :#othername, :#picture,
+                                    :#powers)
+                                  databaseName: heroes_database
+                                  serverName: heroes-db.default.svc.cluster.local
+                                  serverPort: 5432
+                                  username: superman
+                                  password: superman
+                                  description: Insert DB
+                                description: Insert DB
+                        - id: when-24b0
+                          expression:
+                            simple:
+                              expression: ${header.operation} == 'd'
+                              id: simple-c4d6
+                          description: Delete a Hero
+                          steps:
+                            - to:
+                                uri: kamelet:postgresql-sink
+                                id: to-522f
+                                parameters:
+                                  query: DELETE FROM hero WHERE id=:#id
+                                  databaseName: heroes_database
+                                  serverName: heroes-db.default.svc.cluster.local
+                                  serverPort: '5432'
+                                  username: superman
+                                  password: superman
+                                description: Delete DB
+                      id: choice-40b3
+            id: choice-f747
+            otherwise:
+              id: otherwise-41f6
+              steps:
+                - log:
+                    message: no message to process
+                    id: log-e37a
+                    description: no message to process
+- route:
+    id: WorkOutwhatToDo
+    from:
+      uri: direct:WorkOutWhatToDo
+      id: from-f439
+      steps:
+        - choice:
+            when:
+              - id: when-9734
+                expression:
+                  simple:
+                    expression: ${header.operation} == 'd'
+                    id: simple-ed9a
+                description: operation = 'd'
+                steps:
+                  - setBody:
+                      id: setBody-f81c
+                      expression:
+                        jsonpath:
+                          expression: $.payload.before
+                          id: jsonpath-165e
+                      description: set body to before payload
+                  - log:
+                      message: capture before for delete
+                      id: log-a208
+                      loggingLevel: INFO
+              - id: when-0303
+                expression:
+                  simple:
+                    expression: ${header.snapshot} == 'true' && ${header.operation} == 'r'
+                    id: simple-8654
+                description: snapshot = 'true' and operation} = 'r'
+                steps:
+                  - setBody:
+                      id: setBody-6336
+                      expression:
+                        jsonpath:
+                          expression: $.payload.after
+                          id: jsonpath-12ec
+                      description: set body to after payload
+                  - setHeader:
+                      name: operation
+                      id: setHeader-8011
+                      expression:
+                        constant:
+                          expression: c
+                          id: constant-1261
+                      description: set operation to c
+                  - log:
+                      message: snapsahot true and operation r ${body}
+                      id: log-cf0a
+                      loggingLevel: INFO
+              - id: when-84ce
+                expression:
+                  simple:
+                    expression: ${header.snapshot} == 'last' && ${header.operation} == 'r'
+                    id: simple-6b3d
+                description: snapshot = 'last' and  operation} = 'r'
+                steps:
+                  - setBody:
+                      id: setBody-8e22
+                      expression:
+                        jsonpath:
+                          expression: $.payload.after
+                          id: jsonpath-a8d2
+                      description: set body to after payload
+                  - setHeader:
+                      name: operation
+                      id: setHeader-2ad7
+                      expression:
+                        constant:
+                          expression: c
+                          id: constant-8187
+                      description: set operation to c
+                  - log:
+                      message: snapsahot last and operation r
+                      id: log-c601
+            id: choice-561a
+            otherwise:
+              id: otherwise-6867
+              steps:
+                - setBody:
+                    id: setBody-af4a
+                    expression:
+                      jsonpath:
+                        expression: $.payload.after
+                        id: jsonpath-f60d
+                    description: set body to after payload
+                - log:
+                    message: normnal record. Continue as is
+                    id: log-205b
+                    loggingLevel: INFO

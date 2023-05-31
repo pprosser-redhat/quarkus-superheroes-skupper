@@ -1,0 +1,40 @@
+# camel-k: dependency=camel-quarkus-atlasmap resource=file:transform.adm
+
+- route:
+    id: route-51ad
+    from:
+      uri: kamelet:timer-source
+      id: from-d428
+      parameters:
+        period: 2
+        message: hello
+      steps:
+        - setBody:
+            id: setBody-050d
+            expression:
+              simple:
+                expression: >-
+                  {hello: welcome1 Hello from Intel}
+                id: simple-2f21
+        - to:
+            uri: atlasmap:file:/etc/camel/resources/transform.adm
+            id: to-2643
+        - setBody:
+            id: setBody-523f
+            expression:
+              simple:
+                expression: ${header.newHello}
+                id: simple-622a
+        - unmarshal:
+            id: marshal-8c79
+            json:
+              id: json-ed83
+              library: jackson
+              prettyPrint: true
+        - to:
+            uri: kamelet:jms-amqp-10-sink
+            id: to-5f7a
+            parameters:
+              destinationType: queue
+              destinationName: exampleQueue
+              remoteURI: amqp://messaging:5672
