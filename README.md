@@ -167,7 +167,7 @@ spec:
       transaction.state.log.min.isr: 1
       default.replication.factor: 1
       min.insync.replicas: 1
-      inter.broker.protocol.version: '3.2'
+      inter.broker.protocol.version: '3.4'
       delete.topic.enabled: true
     listeners:
       - name: plain
