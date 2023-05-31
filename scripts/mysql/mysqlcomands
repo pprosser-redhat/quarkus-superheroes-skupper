@@ -1,0 +1,44 @@
+skupper init --site-name rosa --console-auth openshift
+
+skupper init --site-name intel --console-auth openshift
+
+skupper gateway init --type podman
+
+skupper gateway expose philsmysql 10.0.2.2 3306 --protocol tcp --type podman
+
+mysql --host=philsmysql --port 3306 --user=phil --password=phil
+
+select id, name, othername from phil.hero;
+
+oc exec -it my-cluster-kafka-0 -- /opt/kafka/bin/kafka-console-consumer.sh \
+  --bootstrap-server localhost:9092 \
+  --from-beginning \
+  --topic philsmac.phil.hero
+
+# if using eks for Villains
+
+export KUBECONFIG=$HOME/.kube/config-eks
+
+ aws eks update-kubeconfig --region us-east-1 --name VillainCluster
+
+kubectl config set-context --current --namespace=villains
+
+kubectl exec --stdin --tty mysql-554d7489d6-g4hcc -- bash
+
+
+# Reset Postgresql DB
+psql --dbname=heroes_database --username=superman --password
+delete from hero;
+
+skupper init --console-user admin --console-password admin
+
+For aks or eks need to add this to the skupper deployment (goes at the same level as container)
+      imagePullSecrets:
+        - name: 11212394-eks-pull-secret
+
+
+skupper gateway expose heroes-db 10.0.2.2 5432 --protocol tcp --type podman
+
+psql --dbname=heroes_database --username=superman --host=heroes-db --password
+
+select id, name, othername from Hero order by id;

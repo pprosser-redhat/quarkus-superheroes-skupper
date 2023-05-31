@@ -1,0 +1,20 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: phils-connector  
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  class: io.debezium.connector.mysql.MySqlConnector
+  tasksMax: 1  
+  config:
+    snapshot.mode: initial
+    database.hostname: philsmysql  
+    database.port: 3306
+    database.user: phil
+    database.password: phil
+    database.server.id: 18999  
+    database.server.name: philsmac  
+    database.whitelist: phil
+    database.history.kafka.bootstrap.servers: my-cluster-kafka-bootstrap:9092  
+    database.history.kafka.topic: schema-changes.phil

@@ -1,0 +1,41 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  bootstrapServers: 'my-cluster-kafka-bootstrap:9093'
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: connect-metrics
+        key: metrics-config.yml
+  replicas: 1
+  config:
+    group.id: connect-cluster
+    offset.storage.topic: connect-cluster-offsets
+    config.storage.topic: connect-cluster-configs
+    status.storage.topic: connect-cluster-status
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+  tls:
+    trustedCertificates:
+      - certificate: ca.crt
+        secretName: my-cluster-cluster-ca-cert
+  version: 3.2.3
+  build:
+    output:
+      type: imagestream
+      image: debezium-connector-image:latest
+    plugins:
+      - name: debezium-mysql-connector
+        artifacts:
+          - type: zip
+            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-mysql/1.9.5.Final-redhat-00001/debezium-connector-mysql-1.9.5.Final-redhat-00001-plugin.zip 
+      - name: debezium-postgres-connector
+        artifacts:
+          - type: zip
+            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-postgres/1.9.5.Final-redhat-00001/debezium-connector-postgres-1.9.5.Final-redhat-00001-plugin.zip
