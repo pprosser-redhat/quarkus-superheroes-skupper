@@ -189,7 +189,7 @@ spec:
         configMapKeyRef:
           name: kafka-metrics
           key: kafka-metrics-config.yml
-    version: 3.2.3
+    version: 3.4.0
   zookeeper:
     replicas: 1
     storage:
