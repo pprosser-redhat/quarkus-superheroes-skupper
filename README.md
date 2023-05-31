@@ -241,7 +241,7 @@ spec:
     trustedCertificates:
       - certificate: ca.crt
         secretName: my-cluster-cluster-ca-cert
-  version: 3.2.3
+  version: 3.4.0
   build:
     output:
       type: imagestream
@@ -250,11 +250,11 @@ spec:
       - name: debezium-mysql-connector
         artifacts:
           - type: zip
-            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-mysql/1.9.5.Final-redhat-00001/debezium-connector-mysql-1.9.5.Final-redhat-00001-plugin.zip 
+            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-mysql/2.1.4.Final-redhat-00001/debezium-connector-mysql-2.1.4.Final-redhat-00001-plugin.zip 
       - name: debezium-postgres-connector
         artifacts:
           - type: zip
-            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-postgres/1.9.5.Final-redhat-00001/debezium-connector-postgres-1.9.5.Final-redhat-00001-plugin.zip
+            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-postgres/2.1.4.Final-redhat-00001/debezium-connector-postgres-2.1.4.Final-redhat-00001-plugin.zip
 ```
 ## Deploy the Kafka Connector
 
