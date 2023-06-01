@@ -9,7 +9,7 @@
         user: test
         password: test
         securityProtocol: PLAINTEXT
-        consumerGroup: customers4
+        consumerGroup: customers
         autoCommitEnable: true
         autoOffsetReset: earliest
       steps:
@@ -72,7 +72,7 @@
                                     :#picture, powers = :#powers  WHERE id =
                                     :#id
                                   databaseName: heroes_database
-                                  serverName: heroes-db.default.svc.cluster.local
+                                  serverName: heroes-db.superheroes.svc.cluster.local
                                   serverPort: 5432
                                   username: superman
                                   password: superman
@@ -94,7 +94,7 @@
                                     :#level, :#name, :#othername, :#picture,
                                     :#powers)
                                   databaseName: heroes_database
-                                  serverName: heroes-db.default.svc.cluster.local
+                                  serverName: heroes-db.superheroes.svc.cluster.local
                                   serverPort: 5432
                                   username: superman
                                   password: superman
@@ -113,7 +113,7 @@
                                 parameters:
                                   query: DELETE FROM hero WHERE id=:#id
                                   databaseName: heroes_database
-                                  serverName: heroes-db.default.svc.cluster.local
+                                  serverName: heroes-db.superheroes.svc.cluster.local
                                   serverPort: '5432'
                                   username: superman
                                   password: superman
