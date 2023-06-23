@@ -1,6 +1,6 @@
 # Superheroes and Skupper demo
 
-This demo focuses on Skupper configuration, CDC, Kafka and Integration
+This demo focuses on Skupper configuration, Service Federatation and Remote database
 
 ## Introduction
 
