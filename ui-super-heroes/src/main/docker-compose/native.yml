@@ -1,6 +1,6 @@
 
-  ui-super-heroes:
-    image: quay.io/quarkus-super-heroes/ui-super-heroes:latest
+  ui-super-heroes-native:
+    image: quay.io/quarkus-super-heroes/ui-super-heroes:native-latest
     container_name: ui-super-heroes
     ports:
       - "8080:8080"

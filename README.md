@@ -7,6 +7,38 @@ This demo focuses on Skupper configuration, CDC, Kafka and Integration
 The purpose of this demo is to show how easy it is to setup Skupper. I choose to use the Superheroes demo because its microservice architecure. It makes it very to use Skupper with.
 
 The demo uses 2 OpenShift clusters, really doesn't matter which or where you deploy them. Clearly, the bigger the seperation, the more effective the demo is. I also use a local database running on my laptop.
+The base JVM version for all the applications is Java 17.
+
+- [Super Hero Battle UI](ui-super-heroes)
+    - An Angular application to pick up a random superhero, a random supervillain, and makes them fight.
+    - Served with [Quarkus Quinoa](https://quarkiverse.github.io/quarkiverse-docs/quarkus-quinoa/dev/index.html)
+- [Villain REST API](rest-villains)
+    - A classical HTTP microservice exposing CRUD operations on Villains, stored in a PostgreSQL database.
+    - Implemented with blocking endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive) and [Quarkus Hibernate ORM with Panache's active record pattern](https://quarkus.io/guides/hibernate-orm-panache).
+    - Favors field injection of beans (`@Inject` annotation) over construction injection.
+    - Uses the [Quarkus Qute templating engine](https://quarkus.io/guides/qute) for its [UI](rest-villains/README.md#running-the-application).
+    - Contains [contract verification tests](rest-villains/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
+- [Hero REST API](rest-heroes)
+    - A reactive HTTP microservice exposing CRUD operations on Heroes, stored in a PostgreSQL database.
+    - Implemented with reactive endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive) and [Quarkus Hibernate Reactive with Panache's repository pattern](http://quarkus.io/guides/hibernate-reactive-panache).
+    - Favors constructor injection of beans over field injection (`@Inject` annotation).
+    - Uses the [Quarkus Qute templating engine](https://quarkus.io/guides/qute) for its [UI](rest-heroes/README.md#running-the-application).
+    - Contains [contract verification tests](rest-heroes/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
+- [Fight REST API](rest-fights)
+    - A REST API invoking the Hero and Villain APIs to get a random superhero and supervillain. Each fight is then stored in a MongoDB database.
+    - Implemented with reactive endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive) and [Quarkus MongoDB Reactive with Panache's active record pattern](https://quarkus.io/guides/mongodb-panache#reactive).
+    - Invocations to the Hero and Villain APIs are done using the [reactive rest client](https://quarkus.io/guides/rest-client-reactive) and are protected using [resilience patterns](https://quarkus.io/guides/smallrye-fault-tolerance), such as retry, timeout, and circuit breaking.
+    - Each fight is asynchronously sent, via Kafka, to the [Statistics](event-statistics) microservice.
+        - Messages on Kafka use [Apache Avro](https://avro.apache.org/docs/current) schemas and are stored in an [Apicurio Registry](https://www.apicur.io/registry), all using [built-in support from Quarkus](https://quarkus.io/guides/kafka-schema-registry-avro).
+    - Contains [consumer contract and contract verification tests](rest-fights/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
+- [Statistics](event-statistics)
+    - Calculates statistics about each fight and serves them to an HTML + JQuery UI using [WebSockets](https://quarkus.io/guides/websockets).
+- [Prometheus](https://prometheus.io/)
+    - Polls metrics from all the services within the system.
+- [OpenTelemetry Collector](https://opentelemetry.io/docs/collector)
+    - All services export distributed trace information to the collector.
+- [Jaeger](https://www.jaegertracing.io)
+    - The collector exports trace information into Jaeger.
 
 Here is an architecture diagram of the application:
 ![Superheroes architecture diagram](images/application-architecture.png)
