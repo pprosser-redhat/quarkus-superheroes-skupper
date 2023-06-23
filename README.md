@@ -44,7 +44,7 @@ Here is an architecture diagram of the application:
 ![Superheroes architecture diagram](images/application-architecture.png)
 
 Here is how the distribution will be set up:
-![Network distribution diagram](images/distribution.png)
+![Network distribution diagram](images/crc-arch.png)
 I have chosen to split the villain service out on to a seperate cluster using Skupper and exposing the service. 
 
 For the Heroes service.... I have hosted a mysql DB on my laptop that containes a table with the data in.
