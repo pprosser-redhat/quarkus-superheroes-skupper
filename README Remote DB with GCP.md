@@ -12,7 +12,7 @@ Here is an architecture diagram of the application:
 ![Superheroes architecture diagram](images/application-architecture.png)
 
 Here is how the distribution will be set up:
-![Network distribution diagram](images/remote-db.png)
+![Network distribution diagram](images/remote-db-gke.png)
 I have chosen to split the villain service out on to a seperate cluster using Skupper and exposing the service. 
 
 For the Heroes service.... I have hosted a mysql DB on my laptop that containes a table with the data in.
@@ -134,11 +134,13 @@ http://ui-super-heroes-superheroes.apps.rosa-zjs4n.tvaf.p1.openshiftapps.com/
 ## Initialise Skupper in each namespace
 
 ```
-skupper init --site-name intel --enable-console --enable-flow-collector --console-auth openshift
-```
-```
 skupper init --site-name gcp
 ```
+
+```
+skupper init --site-name intel --enable-console --enable-flow-collector --console-auth openshift
+```
+
 
 ## Link the sites together (most private to the most public)
 
