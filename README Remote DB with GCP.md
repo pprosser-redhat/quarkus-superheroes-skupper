@@ -85,7 +85,7 @@ oc new-project superheroes
 
 * Set enironment variable in the VM
   ```
-  export KUBECONFIG=$HOME/.kube/config-rosa
+  export KUBECONFIG=$HOME/.kube/config-gcp
   ```
 
 * Initialise the connector to the GKE cluster and configure kubectl
