@@ -157,6 +157,12 @@ skupper gateway init --type podman
 skupper gateway expose heroes-db 10.0.2.2 5432 --protocol tcp --type podman
 ```
 
+
+## note for using podman sites, if you use a podman site to expose the DB then it doesn't seen to like working through vbox gateway to using postgres in the VM. Connection this way looks like 
+```
+skupper expose host rhel8 --address heroes-db  --port 5432 --target-port 6543 --host-ip 192.168.58.4
+```
+
 Test that I can connect to to DB, in a postgres pod on the villains project
 
 ```
