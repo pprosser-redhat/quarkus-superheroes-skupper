@@ -8,16 +8,36 @@ podman run --name ui-superheroes -d -p 8080:8080 -e API_BASE_URL=http://10.50.2.
  
  ## fights db 
  
+```
 podman run --name fights-db -d -p 27017:27017  -e MONGO_INITDB_DATABASE=fights -e MONGO_INITDB_ROOT_USERNAME=super -e MONGO_INITDB_ROOT_PASSWORD=super mongo:5.0
+```
+
+To define the user and db....
+
+```
+podman exec -it --tty fights-db bash
+```
+
+```
+mongosh --host 10.50.2.97 --port 27017 -u super -p super
+```
+
+```
+use fights
+```
+
+```
+db.createUser( { user: "superfight", pwd: "superfight", roles: [ { role: "readWrite", db: "fights" }] } )
+```
 
 ## rest fights
 ```
 podman run --name rest-fights -d -p 8082:8082 \
-      -e QUARKUS_MONGODB_HOSTS=superheroes:27017 \
+      -e QUARKUS_MONGODB_HOSTS=10.50.2.97:27017 \
       -e KAFKA_BOOTSTRAP_SERVERS=PLAINTEXT://localhost:9092 \
       -e QUARKUS_LIQUIBASE_MONGODB_MIGRATE_AT_START="false" \
-      -e QUARKUS_MONGODB_CREDENTIALS_USERNAME=superfight \
-      -e QUARKUS_MONGODB_CREDENTIALS_PASSWORD=superfight \
+      -e QUARKUS_MONGODB_CREDENTIALS_USERNAME="superfight" \
+      -e QUARKUS_MONGODB_CREDENTIALS_PASSWORD="superfight" \
       -e QUARKUS_STORK_HERO_SERVICE_SERVICE_DISCOVERY_ADDRESS_LIST=10.50.1.127:8083 \
       -e QUARKUS_STORK_VILLAIN_SERVICE_SERVICE_DISCOVERY_ADDRESS_LIST=10.50.1.127:8084 \
       -e MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_APICURIO_REGISTRY_URL=http://apicurio:8086/apis/registry/v2 \
