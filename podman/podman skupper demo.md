@@ -4,18 +4,11 @@ The purpose of this demo is to install and configure skupper on podman to link s
 
 ## Demo Archtecture
 
+![Podman architecture diagram](podman-sites.png)
+
 ## Install Skupper 
 
 All DNS name and IP addresses are all specific for one environment - need swapping out for a rerun of the demo
-
-### Install skupper in Demolab
-```
-export SKUPPER_PLATFORM=podman
-```
-
-```
-skupper init --site-name demolab --ingress-host skupper-router
-```
 
 ### Install skupper in AWS DMZ subnet
 
@@ -27,6 +20,15 @@ export SKUPPER_PLATFORM=podman
 
 ```
 skupper init --site-name aws-public --ingress-host ec2-13-53-35-150.eu-north-1.compute.amazonaws.com
+```
+
+### Install skupper in Demolab
+```
+export SKUPPER_PLATFORM=podman
+```
+
+```
+skupper init --site-name demolab --ingress-host skupper-router
 ```
 
 ### Install skupper in AWS private subnet
