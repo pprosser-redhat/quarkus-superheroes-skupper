@@ -241,5 +241,17 @@ Remove Villains
 sh ~/quarkus-superheroes-skupper/progressive-migration/remove-villains.sh
 ```
 
+Deploy fights
+
+```
+sh ~/quarkus-superheroes-skupper/progressive-migration/deploy-fights.sh
+```
 
 this should switch the UI over to ocp4 service
+
+
+Just in case hit evicted pods 
+
+```
+oc get pod --all-namespaces  | awk '{if ($4=="Evicted") print "oc delete pod " $2 " -n " $1;}' | sh 
+```
