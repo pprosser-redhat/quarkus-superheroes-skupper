@@ -247,7 +247,17 @@ Deploy fights
 sh ~/quarkus-superheroes-skupper/progressive-migration/deploy-fights.sh
 ```
 
-this should switch the UI over to ocp4 service
+Remove fights from OCP3
+
+```
+sh quarkus-superheroes-skupper/progressive-migration/remove-fight.sh
+```
+
+Switch over the User Interface
+
+```
+
+```
 
 
 Just in case hit evicted pods 
