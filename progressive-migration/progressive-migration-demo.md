@@ -241,6 +241,8 @@ oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-villains:8084/api/v
 sh ~/quarkus-superheroes-skupper/progressive-migration/scaledown-villains.sh
 ```
 
+***Note*** Before testing, make sure you remove Villains as this redoes the http route
+
 ### Remove Villains from OCP 3
 
 ```
