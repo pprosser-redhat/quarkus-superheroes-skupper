@@ -119,14 +119,18 @@ oc exec skupper-router-7b6c78c885-7vttl curl http://rest-heroes:80/api/heroes/1 
 
 We are going to migrate the heroes service. The service has a dependency on a database that we will not migrate to start with so we need to make the heroes-db available to OCP 4 via the skupper network
 
+(for demo, cli is preferred approach)
+```
+skupper expose deployment heroes-db --address heroes-db --port 5432
+```
+
+or
+
 ```
 oc annotate deployment heroes-db "skupper.io/address=heroes-db" "skupper.io/port=5432" "skupper.io/proxy=tcp"
 
 ```
-or 
-```
-skupper expose deployment heroes-db --address heroes-db --port 5432
-```
+
 
 Test the DB using the little PostgreSQL pod 
 
@@ -141,17 +145,11 @@ followed by
 ```
 select id, name, othername from hero;
 select id, name, othername from hero where name = 'Chewbacca';
-update hero SET othername='OCP3' where name = 'Chewbacca';
-update hero SET othername='OCP4' where name = 'Chewbacca';
 ```
-
-- do this on the OCP 3 cluster and check results on OCP4 - Update Chewbacca other name so we can see which db we are hitting
-
-
 
 Test the service out to make sure it's ok and working with the existing DB
 
-## Deploy the Heroes service to  OCP 4
+## Deploy the rest-heroes service to  OCP 4
 
 Deploy the heros service and DB in OCP 4
 
@@ -161,22 +159,28 @@ oc apply -f ~/quarkus-superheroes-skupper/rest-heroes/deploy/k8s/native-openshif
 
 Test by using curl in the skupper router
 
+**NOTE** use **oc get pods** to find skupper router instance
+
 ```
 oc exec skupper-router-7b6c78c885-7vttl curl http://rest-heroes:80/api/heroes/1
 ```
 
 
-### move the heros-service and make it available to RHSI
+### make rest-heroes available to RHSI
 
+expose the OCP4 version of rest heroes
+(skupper cli preferred for demo)
+```
+skupper expose deploymentconfig rest-heroes --address rest-heroes --port 8083
+```
+or
 ```
 oc annotate deploymentconfig rest-heroes "skupper.io/address=rest-heroes" "skupper.io/port=8083" "skupper.io/proxy=tcp"
 ```
 
-```
-skupper expose deploymentconfig rest-heroes --address rest-heroes --port 8083
-```
+Test the new service. 
 
-Scale down the replica on OCP 3
+### Scale down the replica on OCP 3
 ```
 oc scale deploymentconfig rest-heroes --replicas=0
 ```
@@ -217,49 +221,59 @@ oc delete all -l app=rest-heroes
 
 # Move Villains
 
-Run the script "deploy-villains.sh" on OCP4
+### Run the script "deploy-villains.sh" on OCP4
 
 ```
 sh ~/quarkus-superheroes-skupper/progressive-migration/deploy-villains.sh
 ```
 
-Test
+### Test villains
 
 ```
 oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-villains:8084/api/villains
 ```
 
-Scale down Villains on OCP3
+### Scale down Villains on OCP3
 
 ```
 sh ~/quarkus-superheroes-skupper/progressive-migration/scaledown-villains.sh
 ```
 
-Remove Villains
+### Remove Villains from OCP 3
 
 ```
 sh ~/quarkus-superheroes-skupper/progressive-migration/remove-villains.sh
 ```
 
-Deploy fights
+# Move Fights
+
+### Deploy fights to OCP4
 
 ```
 sh ~/quarkus-superheroes-skupper/progressive-migration/deploy-fights.sh
 ```
 
-Remove fights from OCP3
+### Remove fights from OCP3
 
 ```
 sh quarkus-superheroes-skupper/progressive-migration/remove-fight.sh
 ```
 
-Switch over the User Interface
+# Switch over the User Interface
 
+### Deploy the UI
+```
+sh quarkus-superheroes-skupper/progressive-migration/deploy-ui.sh
 ```
 
+### Remove the UI
+
+```
+sh quarkus-superheroes-skupper/progressive-migration/remove-ui.sh
 ```
 
 
+# Other stuff
 Just in case hit evicted pods 
 
 ```
