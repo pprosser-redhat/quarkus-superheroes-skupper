@@ -186,10 +186,25 @@ oc scale deploymentconfig rest-heroes --replicas=0
 ```
 ### Switch over the database
 
-set the replicas to 1 for the heroes-db in OCP 4
+For fun...
+
+Expose the OCP4 Db to the skupper network
 
 ```
-oc scale deployment heroes-db --replicas=1
+skupper expose deployment heroes-db --address heroes-db --port 5432
+```
+
+Do skupper status to show multiple endpoints for the DB... better for a service of course
+
+Unexpose the OCP 3 Db
+```
+skupper unexpose deployment heroes-db --address heroes-db
+```
+
+To show this working because of caching you migth need to restart the rest-heroes service on OCP4
+
+```
+oc scale deployment heroes-db --replicas=0
 ```
 
 Test out the service using curl... the skupper router has curl in it
@@ -197,26 +212,13 @@ Test out the service using curl... the skupper router has curl in it
 Need to get the correct pod name using "oc get pods"
 
 ```
-oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-heroes.superheroes.svc.cluster.local:80/api/heroes/1 |jq
-```
-
-Unexpose the database from OCP 3
-
-```
-skupper unexpose deployment heroes-db --address heroes-db
-```
-
-Scale OCP 3 heroes-db to 0
-
-```
-oc scale deployment heroes-db --replicas=0
+oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-heroes.superheroes.svc.cluster.local:8083/api/heroes/1 |jq
 ```
 
 remove all heroes from OCP3
 
 ```
-oc delete all -l app=rest-heroes 
-oc delete all -l app=rest-heroes
+oc delete all -l application=heroes-service 
 ```
 
 # Move Villains
