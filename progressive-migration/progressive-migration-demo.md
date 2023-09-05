@@ -274,6 +274,11 @@ sh quarkus-superheroes-skupper/progressive-migration/deploy-ui.sh
 sh quarkus-superheroes-skupper/progressive-migration/remove-ui.sh
 ```
 
+# clean up the Heroes namespace and remove all traces of Skupper
+
+```
+sh quarkus-superheroes-skupper/progressive-migration/cleanup.sh
+```
 
 # Other stuff
 Just in case hit evicted pods 
