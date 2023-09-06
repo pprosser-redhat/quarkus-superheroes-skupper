@@ -186,19 +186,17 @@ oc scale deploymentconfig rest-heroes --replicas=0
 ```
 ### Switch over the database
 
-For fun...
-
-Expose the OCP4 Db to the skupper network
-
-```
-skupper expose deployment heroes-db --address heroes-db --port 5432
-```
-
-Do skupper status to show multiple endpoints for the DB... better for a service of course
-
 Unexpose the OCP 3 Db
 ```
 skupper unexpose deployment heroes-db --address heroes-db
+```
+
+Because the service was created by SI it will be delete (deployment of service failed as it already exists). 
+
+Need to create the service for heroes-db
+
+```
+oc expose deployment heroes-db
 ```
 
 To show this working because of caching you migth need to restart the rest-heroes service on OCP4
