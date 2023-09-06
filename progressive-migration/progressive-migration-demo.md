@@ -112,7 +112,7 @@ select id, name, othername from hero where name = 'Chewbacca';
 Test out by curling the service 
 
 ```
-oc exec skupper-router-7b6c78c885-7vttl curl http://rest-heroes:80/api/heroes/1 |jq
+oc exec deploy/skupper-router curl http://rest-heroes:80/api/heroes/1 |jq
 ```
 
 ## Make Heroes DB available in ocp4 
@@ -162,7 +162,7 @@ Test by using curl in the skupper router
 **NOTE** use **oc get pods** to find skupper router instance
 
 ```
-oc exec skupper-router-7b6c78c885-7vttl curl http://rest-heroes:80/api/heroes/1
+oc exec deploy/skupper-router curl http://rest-heroes:80/api/heroes/1
 ```
 
 
@@ -210,7 +210,7 @@ Test out the service using curl... the skupper router has curl in it
 Need to get the correct pod name using "oc get pods"
 
 ```
-oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-heroes.superheroes.svc.cluster.local:8083/api/heroes/1 |jq
+oc exec -it deploy/skupper-router curl http://rest-heroes.superheroes.svc.cluster.local:8083/api/heroes/1 |jq
 ```
 
 remove all heroes from OCP3
@@ -230,7 +230,7 @@ sh ~/quarkus-superheroes-skupper/progressive-migration/deploy-villains.sh
 ### Test villains
 
 ```
-oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-villains:8084/api/villains
+oc exec -it deploy/skupper-router curl http://rest-villains:8084/api/villains
 ```
 
 ### Scale down Villains on OCP3
