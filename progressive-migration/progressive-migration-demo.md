@@ -277,7 +277,6 @@ sh quarkus-superheroes-skupper/progressive-migration/remove-ui.sh
 # clean up the Heroes namespace and remove all traces of Skupper
 
 ```
-skupper unexpose deployment heroes-db
 skupper unexpose deploymentconfig rest-heroes
 skupper unexpose deploymentconfig rest-villains
 skupper unexpose deploymentconfig rest-fights
@@ -285,10 +284,6 @@ skupper unexpose deploymentconfig rest-fights
 
 ```
 skupper delete
-```
-
-```
-oc expose deployment heroes-db
 ```
 
 # Other stuff
