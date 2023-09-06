@@ -162,7 +162,7 @@ Test by using curl in the skupper router
 **NOTE** use **oc get pods** to find skupper router instance
 
 ```
-oc exec deploy/skupper-router curl http://rest-heroes:80/api/heroes/1
+oc exec deploy/skupper-router curl http://rest-heroes:80/api/heroes/1 |jq
 ```
 
 
@@ -210,7 +210,7 @@ Test out the service using curl... the skupper router has curl in it
 Need to get the correct pod name using "oc get pods"
 
 ```
-oc exec -it deploy/skupper-router curl http://rest-heroes.superheroes.svc.cluster.local:8083/api/heroes/1 |jq
+oc exec deploy/skupper-router curl http://rest-heroes:8083/api/heroes/1 | jq
 ```
 
 remove all heroes from OCP3
