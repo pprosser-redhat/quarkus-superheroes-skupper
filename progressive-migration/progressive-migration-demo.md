@@ -65,7 +65,7 @@ skupper status
 ### in OCP 4 cluster
 
 ```
-skupper init --site-name ocp4 --enable-console --enable-flow-collector --console-auth openshift
+skupper init --site-name ocp4 --enable-console --enable-flow-collector
 ```
 
 check the status 
@@ -241,8 +241,6 @@ oc exec -it skupper-router-559957cc8b-zphcs curl http://rest-villains:8084/api/v
 sh ~/quarkus-superheroes-skupper/progressive-migration/scaledown-villains.sh
 ```
 
-***Note*** Before testing, make sure you remove Villains as this redoes the http route
-
 ### Remove Villains from OCP 3
 
 ```
@@ -256,6 +254,8 @@ sh ~/quarkus-superheroes-skupper/progressive-migration/remove-villains.sh
 ```
 sh ~/quarkus-superheroes-skupper/progressive-migration/deploy-fights.sh
 ```
+
+***Note*** Before testing, make sure you remove fights as this redoes the http route
 
 ### Remove fights from OCP3
 
@@ -287,4 +287,10 @@ Just in case hit evicted pods
 
 ```
 oc get pod --all-namespaces  | awk '{if ($4=="Evicted") print "oc delete pod " $2 " -n " $1;}' | sh 
+```
+
+How to delete completed pods
+
+```
+oc delete pod --field-selector=status.phase==Succeeded --all-namespaces
 ```
