@@ -6,6 +6,12 @@ The purpose of this demo is to install and configure skupper on podman to link s
 
 ![Podman architecture diagram](podman-sites.png)
 
+## Note on ssh'ing to the VMS on the cloud
+
+running with a private subnet means you cannot connect directly to the VM, you have to jump via the public subnet VM
+
+ssh into the public vm, abd from there, ssh to the private VM
+
 ## Install Skupper 
 
 All DNS name and IP addresses are all specific for one environment - need swapping out for a rerun of the demo
@@ -19,7 +25,7 @@ export SKUPPER_PLATFORM=podman
 ```
 
 ```
-skupper init --site-name aws-public --ingress-host ec2-13-53-35-150.eu-north-1.compute.amazonaws.com
+skupper init --site-name aws-public --ingress-host ec2-16-171-235-98.eu-north-1.compute.amazonaws.com
 ```
 
 ### Install skupper in Demolab
