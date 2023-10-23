@@ -33,6 +33,12 @@ Using a project called router
 skupper init --site-name cloud --enable-console --enable-flow-collector
 ```
 
+To extract the admin password
+
+```
+oc extract secret/skupper-console-users -n router --to=-
+```
+
 Set up terminal windows and use a kubeconfig to access the correct clusters
 
 For demolab use
