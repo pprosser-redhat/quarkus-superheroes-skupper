@@ -15,56 +15,59 @@
       steps:
         - log:
             message: '"Boom, a message ${body}"'
-            id: log-9b74
             loggingLevel: INFO
+            id: log-9b74
         - choice:
             when:
-              - id: when-6f94
-                expression:
+              - expression:
                   simple:
                     expression: ${body} != null
                     id: simple-6ea9
+                id: when-6f94
                 steps:
                   - setHeader:
                       name: operation
-                      id: setHeader-64d1
                       expression:
                         jsonpath:
                           expression: $.payload.op
                           id: jsonpath-dc29
+                      id: setHeader-64d1
                       description: get operation value
                   - setHeader:
                       name: snapshot
-                      id: setHeader-1145
                       expression:
                         jsonpath:
                           expression: $.payload.source.snapshot
                           id: jsonpath-4564
+                      id: setHeader-1145
                       description: get snapshot value
                   - to:
-                      uri: direct:WorkOutWhatToDo
+                      uri: direct
                       id: to-88d9
                       description: How do I talk to the DB
+                      parameters:
+                        name: WorkOutWhatToDo
                   - marshal:
                       id: marshal-8207
                       json:
-                        id: json-22ed
                         library: jackson
+                        id: json-22ed
                   - log:
                       message: done
                       id: log-0068
                   - choice:
                       when:
-                        - id: when-c579
-                          expression:
+                        - expression:
                             simple:
                               expression: ${header.operation} == 'u'
                               id: simple-ae94
+                          id: when-c579
                           description: Update Hero
                           steps:
                             - to:
                                 uri: kamelet:postgresql-sink
                                 id: to-97da
+                                description: update DB
                                 parameters:
                                   query: >-
                                     UPDATE hero SET level = :#level, name =
@@ -76,17 +79,17 @@
                                   serverPort: 5432
                                   username: superman
                                   password: superman
-                                description: update DB
-                        - id: when-6bc7
-                          expression:
+                        - expression:
                             simple:
                               expression: ${header.operation} == 'c'
                               id: simple-8a4b
+                          id: when-6bc7
                           description: Create a new Hero
                           steps:
                             - to:
                                 uri: kamelet:postgresql-sink
                                 id: to-198b
+                                description: Insert DB
                                 parameters:
                                   query: >-
                                     INSERT INTO hero (id, level, name,
@@ -99,17 +102,17 @@
                                   username: superman
                                   password: superman
                                   description: Insert DB
-                                description: Insert DB
-                        - id: when-24b0
-                          expression:
+                        - expression:
                             simple:
                               expression: ${header.operation} == 'd'
                               id: simple-c4d6
+                          id: when-24b0
                           description: Delete a Hero
                           steps:
                             - to:
                                 uri: kamelet:postgresql-sink
                                 id: to-522f
+                                description: Delete DB
                                 parameters:
                                   query: DELETE FROM hero WHERE id=:#id
                                   databaseName: heroes_database
@@ -117,9 +120,7 @@
                                   serverPort: '5432'
                                   username: superman
                                   password: superman
-                                description: Delete DB
                       id: choice-40b3
-            id: choice-f747
             otherwise:
               id: otherwise-41f6
               steps:
@@ -127,95 +128,98 @@
                     message: no message to process
                     id: log-e37a
                     description: no message to process
+            id: choice-f747
 - route:
     id: WorkOutwhatToDo
     from:
-      uri: direct:WorkOutWhatToDo
+      uri: direct
       id: from-f439
+      parameters:
+        name: WorkOutWhatToDo
       steps:
         - choice:
             when:
-              - id: when-9734
-                expression:
+              - expression:
                   simple:
                     expression: ${header.operation} == 'd'
                     id: simple-ed9a
+                id: when-9734
                 description: operation = 'd'
                 steps:
                   - setBody:
-                      id: setBody-f81c
                       expression:
                         jsonpath:
                           expression: $.payload.before
                           id: jsonpath-165e
+                      id: setBody-f81c
                       description: set body to before payload
                   - log:
                       message: capture before for delete
-                      id: log-a208
                       loggingLevel: INFO
-              - id: when-0303
-                expression:
+                      id: log-a208
+              - expression:
                   simple:
                     expression: ${header.snapshot} == 'true' && ${header.operation} == 'r'
                     id: simple-8654
+                id: when-0303
                 description: snapshot = 'true' and operation} = 'r'
                 steps:
                   - setBody:
-                      id: setBody-6336
                       expression:
                         jsonpath:
                           expression: $.payload.after
                           id: jsonpath-12ec
+                      id: setBody-6336
                       description: set body to after payload
                   - setHeader:
                       name: operation
-                      id: setHeader-8011
                       expression:
                         constant:
                           expression: c
                           id: constant-1261
+                      id: setHeader-8011
                       description: set operation to c
                   - log:
                       message: snapsahot true and operation r ${body}
-                      id: log-cf0a
                       loggingLevel: INFO
-              - id: when-84ce
-                expression:
+                      id: log-cf0a
+              - expression:
                   simple:
                     expression: ${header.snapshot} == 'last' && ${header.operation} == 'r'
                     id: simple-6b3d
+                id: when-84ce
                 description: snapshot = 'last' and  operation} = 'r'
                 steps:
                   - setBody:
-                      id: setBody-8e22
                       expression:
                         jsonpath:
                           expression: $.payload.after
                           id: jsonpath-a8d2
+                      id: setBody-8e22
                       description: set body to after payload
                   - setHeader:
                       name: operation
-                      id: setHeader-2ad7
                       expression:
                         constant:
                           expression: c
                           id: constant-8187
+                      id: setHeader-2ad7
                       description: set operation to c
                   - log:
                       message: snapsahot last and operation r
                       id: log-c601
-            id: choice-561a
             otherwise:
               id: otherwise-6867
               steps:
                 - setBody:
-                    id: setBody-af4a
                     expression:
                       jsonpath:
                         expression: $.payload.after
                         id: jsonpath-f60d
+                    id: setBody-af4a
                     description: set body to after payload
                 - log:
                     message: normnal record. Continue as is
-                    id: log-205b
                     loggingLevel: INFO
+                    id: log-205b
+            id: choice-561a

@@ -9,8 +9,10 @@ podman run --name ui-superheroes -d -p 8080:8080 -e API_BASE_URL=http://10.50.2.
  ## fights db 
  
 ```
-podman run --name fights-db -d -p 27017:27017  -e MONGO_INITDB_DATABASE=fights -e MONGO_INITDB_ROOT_USERNAME=super -e MONGO_INITDB_ROOT_PASSWORD=super mongo:5.0
+podman run --name fights-db -d -p 27017:27017  -e MONGO_INITDB_DATABASE=fights -e MONGO_INITDB_ROOT_USERNAME=super -e MONGO_INITDB_ROOT_PASSWORD=super docker.io/library/mongo:5.0
 ```
+
+@Note - if the mongo image will not pull - try this -  docker.io/library/mongo:5.0
 
 To define the user and db....
 
@@ -105,7 +107,8 @@ skupper service create rest-heroes 8083 --host-ip 10.50.1.127 --host-port 8083
 
 ## villains db
 
-```podman run --name villains-db -d -p 5432:5432 \
+```
+podman run --name villains-db -d -p 5432:5432 \
       -e POSTGRES_USER=superbad \
       -e POSTGRES_PASSWORD=superbad \
       -e POSTGRES_DB=villains_database \
