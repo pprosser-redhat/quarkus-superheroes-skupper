@@ -166,3 +166,15 @@ psql --dbname=heroes_database --host=ip-10-0-136-150.eu-west-1.compute.internal 
 select id, name, othername from hero;
 select id, name, othername from hero where name = 'Chewbacca';
 ```
+
+Update the data on demolab side
+
+```
+psql --dbname=heroes_database --host=10.50.2.208 --username=superman --password
+```
+
+change data
+
+```
+update hero set othername = 'Phil' where name='Chewbacca';
+```
