@@ -25,7 +25,7 @@ export SKUPPER_PLATFORM=podman
 ```
 
 ```
-skupper init --site-name aws-public --ingress-host ec2-16-171-235-98.eu-north-1.compute.amazonaws.com
+skupper init --site-name aws-public --ingress-host ec2-3-249-30-121.eu-west-1.compute.amazonaws.com
 ```
 
 ### Install skupper in Demolab
@@ -34,7 +34,7 @@ export SKUPPER_PLATFORM=podman
 ```
 
 ```
-skupper init --site-name demolab --ingress-host skupper-router
+skupper init --site-name demolab --ingress-host skupper
 ```
 
 ### Install skupper in AWS private subnet
@@ -47,7 +47,7 @@ export SKUPPER_PLATFORM=podman
 ```
 
 ```
-skupper init --site-name aws-private --ingress-host ip-10-0-141-78.eu-north-1.compute.internal
+skupper init --site-name aws-private --ingress-host ip-10-0-136-150.eu-west-1.compute.internal
 ```
 
 ## Link the sites together 
@@ -92,17 +92,17 @@ In the AWS private window
 Optional, expose the service and make it available for testing on the skupper private node
 
 ```
-skupper expose host ip-10-0-131-3.eu-north-1.compute.internal --address rest-villains --port 8084 --target-port 8084 --host-ip 10.0.141.78
+skupper expose host ip-10-0-129-108.eu-west-1.compute.internal --address rest-villains --port 8084 --target-port 8084 --host-ip 10.0.136.150
 ```
 to delete the above (means that it will not be exposed on the private skupper router)
 
 ```
-skupper unexpose host ip-10-0-131-3.eu-north-1.compute.internal --address rest-villains
+skupper unexpose host ip-10-0-129-108.eu-west-1.compute.internal --address rest-villains
 ```
 **or**
 
 ```
-skupper expose host ip-10-0-131-3.eu-north-1.compute.internal --address rest-villains --port 8084 --target-port 8084
+skupper expose host ip-10-0-129-108.eu-west-1.compute.internal --address rest-villains --port 8084 --target-port 8084
 ```
 
 ## Make the service available in demolab - Villains
@@ -110,7 +110,7 @@ skupper expose host ip-10-0-131-3.eu-north-1.compute.internal --address rest-vil
 ### rest-villains
 
 ```
-skupper service create rest-villains 8084 --host-ip 10.50.1.127 --host-port 8084
+skupper service create rest-villains 8084 --host-ip 10.50.2.244 --host-port 8084
 ```
 
 ## Expose services to skupper - Heroes
@@ -119,7 +119,7 @@ skupper service create rest-villains 8084 --host-ip 10.50.1.127 --host-port 8084
 In the AWS private window
 
 ```
-skupper expose host  ip-10-0-138-53.eu-north-1.compute.internal --address rest-heroes --port 8083 --target-port 8083
+skupper expose host  ip-10-0-129-108.eu-west-1.compute.internal --address rest-heroes --port 8083 --target-port 8083
 ```
 
 ### Check the services are correct
@@ -132,7 +132,7 @@ skupper service status
 
 In demolab window
 ```
-skupper service create rest-heroes 8083 --host-ip 10.50.1.127 --host-port 8083
+skupper service create rest-heroes 8083 --host-ip 10.50.2.244 --host-port 8083
 ```
 
 Testing the service shows that rest-heroes still doesn't work! It's DB is in demolab.
@@ -144,7 +144,7 @@ heros-db is in demolab and needs exposing
 In demolab window
 
 ```
-skupper expose host 10.50.2.97 --address heroes-db --port 5432 --target-port 5432
+skupper expose host 10.50.2.208 --address heroes-db --port 5432 --target-port 5432
 ```
 
 ### hero-db service in private AWS
@@ -153,7 +153,7 @@ add the service definition to AWS private
 
 
 ```
-skupper service create heroes-db 5432 --host-ip 10.0.141.78 --host-port 5432
+skupper service create heroes-db 5432 --host-ip 10.0.136.150 --host-port 5432
 ```
 
 ## test hero-db using psql cli in AWS private skupper VM
