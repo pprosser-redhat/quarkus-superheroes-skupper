@@ -169,6 +169,12 @@ select id, name, othername from hero where name = 'Chewbacca';
 
 Update the data on demolab side
 
+Get into the Postgresql data bash prompt to run psql
+
+```
+podman exec -it heroes-db bash
+```
+
 ```
 psql --dbname=heroes_database --host=10.50.2.208 --username=superman --password
 ```
