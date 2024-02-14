@@ -160,7 +160,7 @@ skupper service create heroes-db 5432 --host-ip 10.0.136.150 --host-port 5432
 If time permits, test accessing the heroes-db using psql across skupper....
 
 ```
-psql --dbname=heroes_database --host=ip-10-0-141-78.eu-north-1.compute.internal --username=superman --password
+psql --dbname=heroes_database --host=ip-10-0-136-150.eu-west-1.compute.internal --username=superman --password
 ```
 ```
 select id, name, othername from hero;
