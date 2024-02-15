@@ -37,6 +37,12 @@ export SKUPPER_PLATFORM=podman
 skupper init --site-name demolab --ingress-host skupper
 ```
 
+if using skupper 1.5.3 use the following to get the console
+
+```
+skupper init --site-name demolab --ingress-host 10.50.2.244 --ingress-bind-ip 10.50.2.244 --enable-console --console-auth unsecured  --enable-flow-collector
+```
+
 ### Install skupper in AWS private subnet
 
 ssh to public DNS of skupper-public VM and then
