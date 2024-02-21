@@ -156,6 +156,14 @@ skupper expose deployment rest-villains --port 8084 --protocol tcp
 ```
 Check the game, villains should start appearing.... might need to refresh the page.
 
+## Expose the heroes service on the intel side
+
+```
+skupper expose deployment rest-heroes --port 8083 --protocol tcp
+```
+Check te game, heroes are still not working 
+
+
 ## Get data from my laptop by defining a skupper podman site 
 
 ```
