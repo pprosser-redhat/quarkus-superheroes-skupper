@@ -197,3 +197,14 @@ select id, name, othername from hero;
 select id, name, othername from hero where name = 'Chewbacca';
 ```
 
+Access from the podman vm
+
+```
+podman exec -it heroes-db bash
+```
+
+change data
+
+```
+update hero set othername = 'Phil' where name='Chewbacca';
+```
