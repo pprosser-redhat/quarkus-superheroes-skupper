@@ -122,7 +122,7 @@ http://ui-super-heroes-superheroes.apps.rosa-zjs4n.tvaf.p1.openshiftapps.com/
 ## Initialise Skupper in each namespace
 
 ```
-skupper init --site-name aws --enable-console --enable-flow-collector --console-auth unsecured
+skupper init --site-name aws --enable-console --enable-flow-collector --console-auth openshift
 ```
 ```
 skupper init --site-name intel
