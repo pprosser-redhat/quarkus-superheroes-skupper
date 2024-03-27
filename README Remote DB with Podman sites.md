@@ -174,6 +174,12 @@ In AWS window
 skupper token create podman.yaml --name podman
 ```
 ```
+skupper init --site-name mylaptop-podman --ingress-host rhel8
+```
+
+or, if not in my Virtual box
+
+```
 skupper init --site-name mylaptop-podman --ingress-host {ip-addr}
 ```
 
