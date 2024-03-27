@@ -107,7 +107,10 @@ For the on premises env use :-
 ```
 export KUBECONFIG=$HOME/.kube/config-coffee
 ```
-
+For the Virtual machine environment export
+```
+export SKUPPER_PLATFORM=podman
+```
 # Demo Instructions
 
 ## Get the fight app up (URL will be different of course)
@@ -138,13 +141,7 @@ In intel window
 skupper link create --name intel-to-aws intel.yaml
 ```
 
-For the skupper podman site (if you are using one)
-
-In AWS window
-```
-skupper token create podman.yaml --name podman
-```
-In intel window
+In Virtual machine window
 ```
 skupper link create --name podman-to-aws podman.yaml
 ```
@@ -153,6 +150,12 @@ skupper link create --name podman-to-aws podman.yaml
 
 ```
 skupper expose deployment rest-villains --port 8084 --protocol tcp
+```
+
+If you want, an alternative way to expose is by defining an annotation to the deployment
+
+```
+skupper.io/proxy: tcp
 ```
 Check the game, villains should start appearing.... might need to refresh the page.
 
@@ -166,14 +169,30 @@ Check te game, heroes are still not working
 
 ## Get data from my laptop by defining a skupper podman site 
 
+In AWS window
 ```
-skupper init --site-name demolab-podman --ingress-host {ip-addr}
+skupper token create podman.yaml --name podman
+```
+```
+skupper init --site-name mylaptop-podman --ingress-host {ip-addr}
+```
+
+In Virtual machine window
+```
+skupper link create --name podman-to-aws podman.yaml
 ```
 
 ## Expose my database
 
+If running in a VM in another env, need to work out IP
 ```
 skupper expose host {ip-addr} --address heroes-db --port 5432 --target-port 5432
+```
+
+If running in a VM on my laptop 
+
+```
+skupper expose host rhel8 --address heroes-db  --port 5432 --target-port 6543 --host-ip 192.168.58.4
 ```
 
 ## Create the service in the intel OpenShift (skupper podman does not automatically do this)
