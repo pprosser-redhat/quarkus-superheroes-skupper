@@ -29,19 +29,19 @@ A small Camel K Integration will read the messages from Kafka and route them to 
 
 Choose one of the 2 clusters to host the Superheroes fight game. Typically choose the most public cluster if you have one.
 
-I'm normally using AWS hosted and demolab
+I'm normally using AWS hosted and Azure
 
 ### Deploy the demo
 
 Clone this repo so you can run the commands locally
 
-#### Create the superheroes namespace in the public cluster
+#### Create the superheroes namespace in the Azure cluster
 
 ```
 oc new-project superheroes
 ```
 
-#### Deploy the application into the superheroes namespace
+#### Deploy the application into the superheroes namespace (In Azure)
 
 * clone the repository
 
@@ -77,7 +77,7 @@ oc new-project superheroes
 
    quarkus.hibernate-orm.database.generation=none
 
-* deploy the villain service to the 2nd OpenShift cluster
+#### deploy the villain service to the 2nd OpenShift cluster (AWS)
 
   oc to the second cluster
 
@@ -97,15 +97,15 @@ oc new-project superheroes
 
 In the terminal windows you are using for the skupper cli, ensure you set KUBECONFIG
 
-For the cloud site use :-
+For the AWS cloud site use :-
 ```
-export KUBECONFIG=$HOME/.kube/config-rosa
+export KUBECONFIG=$HOME/.kube/config-aws
 ```
 
-For the on premises env use :-
+For the Azure env use :-
 
 ```
-export KUBECONFIG=$HOME/.kube/config-coffee
+export KUBECONFIG=$HOME/.kube/config-azure
 ```
 For the Virtual machine environment export
 ```
@@ -113,40 +113,106 @@ export SKUPPER_PLATFORM=podman
 ```
 # Demo Instructions
 
-## Get the fight app up (URL will be different of course)
+## Open up the superheroes UI in a Browser
 
 ```
-http://ui-super-heroes-superheroes.apps.rosa-zjs4n.tvaf.p1.openshiftapps.com/
+http://ui-super-heroes-superheroes.apps.ocp4-vfg9f-ipi.azure.opentlc.com
 ```
+Check that the app is in a fallback situation
+
+## Open up the Rest Heroes UI in a Browser
+
+```
+http://rest-heroes-superheroes.apps.ocp4-vfg9f-ipi.azure.opentlc.com
+```
+It should fail (the service cannot access it's DB)
 
 ## Initialise Skupper in each namespace
 
+For AWS
 ```
 skupper init --site-name aws --enable-console --enable-flow-collector --console-auth unsecured
 ```
+For Azure 
 ```
-skupper init --site-name intel
+skupper init --site-name azure
 ```
 
-## Link the sites together (most private to the most public)
+## Initialise Skupper in VM with podman sites
 
-Can do this in the consoles as well if you want 
+For podman site
+
+```
+skupper init --site-name mylaptop-podman --ingress-host rhel9
+```
+
+## Generate tokens for both AWS and Azure
 
 In AWS window
 ```
-skupper token create intel.yaml --name intel
-```
-In intel window
-```
-skupper link create --name intel-to-aws intel.yaml
+skupper token create podman-aws.yaml --name podman-aws
 ```
 
-In Virtual machine window
+In Azure window
 ```
-skupper link create --name podman-to-aws podman.yaml
+skupper token create podman-azure.yaml --name podman-azure
 ```
 
-## Expose  the villain service on the intel side
+Copy the tokens to the VM
+
+I'm using a VM running with Virtual box and shared folders to make the tokens automatically available in the VM
+
+In my local terminals windows I
+
+```
+cd /Users/{username}/rhsi
+```
+
+before  generating token.
+
+To use the tokens in the VM, I 
+
+```
+cd /home/{username}/rhsi
+```
+
+to pick up the new tokens
+
+
+## Link the sites together (most private to the most public)
+
+Once connected, the VM will appear
+
+AWS <---------- My Laptop ----------> Azure
+
+
+In Virtual machine window link podman to AWS
+```
+skupper link create --name podman-to-aws podman-aws.yaml
+```
+
+Make sure the link has been established by running (in the VM)
+
+```
+skupper link status
+```
+In Virtual machine window link podman to Azure
+```
+skupper link create --name podman-to-azure podman-azure.yaml
+```
+Make sure the link has been established by running (in the VM)
+
+```
+skupper link status
+```
+
+Check what the sites look like in the RHSI console
+
+Make sure the superheroes ui is still falling back
+
+## Expose  the villain service on the AWS side
+
+Link up the Villains service so that the superheroes ui starts showing real villains
 
 ```
 skupper expose deployment rest-villains --port 8084 --protocol tcp
@@ -159,49 +225,23 @@ skupper.io/proxy: tcp
 ```
 Check the game, villains should start appearing.... might need to refresh the page.
 
-## Expose the heroes service on the intel side
-
-```
-skupper expose deployment rest-heroes --port 8083 --protocol tcp
-```
-Check te game, heroes are still not working 
+## Expose my legacy laptop data using the VM based podman site
 
 
-## Get data from my laptop by defining a skupper podman site 
-
-In AWS window
-```
-skupper token create podman.yaml --name podman
-```
-```
-skupper init --site-name mylaptop-podman --ingress-host rhel8
-```
-
-or, if not in my Virtual box
-
-```
-skupper init --site-name mylaptop-podman --ingress-host {ip-addr}
-```
-
-In Virtual machine window
-```
-skupper link create --name podman-to-aws podman.yaml
-```
-
-## Expose my database
+### Expose my database
 
 If running in a VM in another env, need to work out IP
 ```
-skupper expose host {ip-addr} --address heroes-db --port 5432 --target-port 5432
+skupper expose host 10.0.2.2 --port 5432 --target-port 5432 --address heroes-db
 ```
 
-If running in a VM on my laptop 
+Run (might need to run it a few times - it's creating the pods)
 
 ```
-skupper expose host rhel8 --address heroes-db  --port 5432 --target-port 6543 --host-ip 192.168.58.4
+skupper service status
 ```
 
-## Create the service in the intel OpenShift (skupper podman does not automatically do this)
+## Create the service in the Azure OpenShift (skupper podman does not automatically do this)
 
 ```
 skupper service create heroes-db 5432
