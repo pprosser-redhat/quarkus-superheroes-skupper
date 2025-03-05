@@ -43,10 +43,10 @@ oc new-project superheroes
 
 #### Deploy the application into the superheroes namespace (In Azure)
 
-* clone the repository
+* clone the repository (note - change to use the stand demo rather than my own fork)
 
   ```
-  git clone https://github.com/pprosser-redhat/quarkus-super-heroes.git
+  git clone https://github.com/quarkusio/quarkus-super-heroes.git
   ```
 
 * deploy the whole application into the superheroes namespace
@@ -90,7 +90,7 @@ oc new-project superheroes
   deploy the villain service
 
   ```
-  oc apply -f rest-villains/deploy/k8s/native-java17-kubernetes.yml
+  oc apply -f rest-villains/deploy/k8s/native-kubernetes.yml
   ```
 
   Demo code should all now be deployed
