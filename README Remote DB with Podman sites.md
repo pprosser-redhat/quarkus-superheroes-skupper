@@ -248,6 +248,17 @@ skupper service status
 skupper service create heroes-db 5432
 ```
 
+## For fun, you can make the villains api available to the VM to curl to it
+
+```
+skupper service create rest-villains 8084 --host-ip 192.168.58.4  --host-port 8084
+```
+
+On the command line do a curl 
+
+```
+curl http://rhel9:8084/api/villains |jq
+```
 ## note for using podman sites, if you use a podman site to expose the DB then it doesn't seen to like working through vbox gateway to using postgres in the VM. Connection this way looks like 
 ```
 skupper expose host rhel8 --address heroes-db  --port 5432 --target-port 6543 --host-ip 192.168.58.4
