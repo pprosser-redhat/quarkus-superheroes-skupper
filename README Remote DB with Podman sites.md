@@ -127,6 +127,15 @@ http://rest-heroes-superheroes.apps.ocp4-vfg9f-ipi.azure.opentlc.com
 ```
 It should fail (the service cannot access it's DB)
 
+## Initialise Skupper in VM with podman sites
+
+For podman site
+
+```
+skupper init --site-name mylaptop-podman --ingress-host rhel9
+```
+
+
 ## Initialise Skupper in each namespace
 
 For AWS
@@ -136,14 +145,6 @@ skupper init --site-name aws --enable-console --enable-flow-collector --console-
 For Azure 
 ```
 skupper init --site-name azure
-```
-
-## Initialise Skupper in VM with podman sites
-
-For podman site
-
-```
-skupper init --site-name mylaptop-podman --ingress-host rhel9
 ```
 
 ## Generate tokens for both AWS and Azure
