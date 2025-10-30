@@ -29,13 +29,16 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.headers.Header;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jboss.logging.Logger;
 
 import io.quarkus.hibernate.validator.runtime.jaxrs.ResteasyReactiveViolationException;
+import io.quarkus.logging.Log;
+
 import io.quarkus.sample.superheroes.hero.Hero;
 import io.quarkus.sample.superheroes.hero.service.HeroService;
 
@@ -49,11 +52,9 @@ import io.smallrye.mutiny.Uni;
 @Tag(name = "heroes")
 @Produces(APPLICATION_JSON)
 public class HeroResource {
-	private final Logger logger;
 	private final HeroService heroService;
 
-	public HeroResource(Logger logger, HeroService heroService) {
-		this.logger = logger;
+	public HeroResource(HeroService heroService) {
 		this.heroService = heroService;
 	}
 
@@ -63,7 +64,11 @@ public class HeroResource {
 	@APIResponse(
 		responseCode = "200",
 		description = "Gets a random hero",
-		content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = Hero.class, required = true))
+		content = @Content(
+      mediaType = APPLICATION_JSON,
+      schema = @Schema(implementation = Hero.class, required = true),
+      examples = @ExampleObject(name = "hero", value = Examples.VALID_EXAMPLE_HERO)
+    )
 	)
 	@APIResponse(
 		responseCode = "404",
@@ -72,11 +77,11 @@ public class HeroResource {
 	public Uni<Response> getRandomHero() {
 		return this.heroService.findRandomHero()
 			.onItem().ifNotNull().transform(h -> {
-				this.logger.debugf("Found random hero: %s", h);
+				Log.debugf("Found random hero: %s", h);
 				return Response.ok(h).build();
 			})
-			.onItem().ifNull().continueWith(() -> {
-				this.logger.debug("No random villain found");
+			.replaceIfNullWith(() -> {
+				Log.debug("No random hero found");
 				return Response.status(Status.NOT_FOUND).build();
 			});
 	}
@@ -86,13 +91,17 @@ public class HeroResource {
 	@APIResponse(
 		responseCode = "200",
 		description = "Gets all heroes",
-		content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = Hero.class, type = SchemaType.ARRAY))
+		content = @Content(
+      mediaType = APPLICATION_JSON,
+      schema = @Schema(implementation = Hero.class, type = SchemaType.ARRAY),
+      examples = @ExampleObject(name = "heroes", value = Examples.VALID_EXAMPLE_HERO_LIST)
+    )
 	)
 	public Uni<List<Hero>> getAllHeroes(@Parameter(name = "name_filter", description = "An optional filter parameter to filter results by name") @QueryParam("name_filter") Optional<String> nameFilter) {
     return nameFilter
       .map(this.heroService::findAllHeroesHavingName)
-      .orElseGet(this.heroService::findAllHeroes)
-      .invoke(heroes -> this.logger.debugf("Total number of heroes: %d", heroes.size()));
+      .orElseGet(() -> this.heroService.findAllHeroes().replaceIfNullWith(List::of))
+      .invoke(heroes -> Log.debugf("Total number of heroes: %d", heroes.size()));
 	}
 
 	@GET
@@ -101,7 +110,10 @@ public class HeroResource {
 	@APIResponse(
 		responseCode = "200",
 		description = "Gets a hero for a given id",
-		content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = Hero.class))
+		content = @Content(
+      mediaType = APPLICATION_JSON, schema = @Schema(implementation = Hero.class),
+      examples = @ExampleObject(name = "hero", value = Examples.VALID_EXAMPLE_HERO)
+    )
 	)
 	@APIResponse(
 		responseCode = "404",
@@ -110,11 +122,11 @@ public class HeroResource {
 	public Uni<Response> getHero(@Parameter(name = "id", required = true) @PathParam("id") Long id) {
 		return this.heroService.findHeroById(id)
 			.onItem().ifNotNull().transform(h -> {
-				this.logger.debugf("Found hero: %s", h);
+				Log.debugf("Found hero: %s", h);
 				return Response.ok(h).build();
 			})
-			.onItem().ifNull().continueWith(() -> {
-				this.logger.debugf("No hero found with id %d", id);
+			.replaceIfNullWith(() -> {
+				Log.debugf("No hero found with id %d", id);
 				return Response.status(Status.NOT_FOUND).build();
 			});
 	}
@@ -131,11 +143,22 @@ public class HeroResource {
 		responseCode = "400",
 		description = "Invalid hero passed in (or no request body found)"
 	)
-	public Uni<Response> createHero(@Valid @NotNull Hero hero, @Context UriInfo uriInfo) {
+	public Uni<Response> createHero(
+    @RequestBody(
+      name = "hero",
+      required = true,
+      content = @Content(
+        mediaType = APPLICATION_JSON,
+        schema = @Schema(implementation = Hero.class),
+        examples = @ExampleObject(name = "valid_hero", value = Examples.VALID_EXAMPLE_HERO_TO_CREATE)
+      )
+    )
+    @Valid @NotNull Hero hero, @
+    Context UriInfo uriInfo) {
 		return this.heroService.persistHero(hero)
 			.map(h -> {
 				var uri = uriInfo.getAbsolutePathBuilder().path(Long.toString(h.getId())).build();
-				this.logger.debugf("New Hero created with URI %s", uri.toString());
+				Log.debugf("New Hero created with URI %s", uri.toString());
 				return Response.created(uri).build();
 			});
 	}
@@ -156,18 +179,29 @@ public class HeroResource {
 		responseCode = "404",
 		description = "No hero found"
 	)
-	public Uni<Response> fullyUpdateHero(@Parameter(name = "id", required = true) @PathParam("id") Long id, @Valid @NotNull Hero hero) {
+	public Uni<Response> fullyUpdateHero(
+		@Parameter(name = "id", required = true) @PathParam("id") Long id,
+    @RequestBody(
+      name = "hero",
+      required = true,
+      content = @Content(
+        mediaType = APPLICATION_JSON,
+        schema = @Schema(implementation = Hero.class),
+        examples = @ExampleObject(name = "valid_hero", value = Examples.VALID_EXAMPLE_HERO)
+      )
+    )
+    @Valid @NotNull Hero hero) {
     if (hero.getId() == null) {
 			hero.setId(id);
 		}
 
 		return this.heroService.replaceHero(hero)
 			.onItem().ifNotNull().transform(h -> {
-				this.logger.debugf("Hero replaced with new values %s", h);
+				Log.debugf("Hero replaced with new values %s", h);
 				return Response.noContent().build();
 			})
-			.onItem().ifNull().continueWith(() -> {
-				this.logger.debugf("No hero found with id %d", hero.getId());
+			.replaceIfNullWith(() -> {
+				Log.debugf("No hero found with id %d", hero.getId());
 				return Response.status(Status.NOT_FOUND).build();
 			});
 	}
@@ -184,11 +218,22 @@ public class HeroResource {
 		responseCode = "400",
 		description = "Invalid heroes passed in (or no request body found)"
 	)
-  public Uni<Response> replaceAllHeroes(@NotNull List<Hero> heroes, @Context UriInfo uriInfo) {
+  public Uni<Response> replaceAllHeroes(
+    @RequestBody(
+      name = "valid_heroes",
+      required = true,
+      content = @Content(
+        mediaType = APPLICATION_JSON,
+        schema = @Schema(implementation = Hero.class, type = SchemaType.ARRAY),
+        examples = @ExampleObject(name = "heroes", value = Examples.VALID_EXAMPLE_HERO_LIST)
+      )
+    )
+    @NotNull List<Hero> heroes,
+    @Context UriInfo uriInfo) {
     return this.heroService.replaceAllHeroes(heroes)
       .map(h -> {
 				var uri = uriInfo.getAbsolutePathBuilder().build();
-				this.logger.debugf("New Heroes created with URI %s", uri.toString());
+				Log.debugf("New Heroes created with URI %s", uri.toString());
 				return Response.created(uri).build();
 			});
   }
@@ -200,7 +245,11 @@ public class HeroResource {
 	@APIResponse(
 		responseCode = "200",
 		description = "Updated the hero",
-		content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = Hero.class))
+		content = @Content(
+      mediaType = APPLICATION_JSON,
+      schema = @Schema(implementation = Hero.class),
+      examples = @ExampleObject(name = "hero", value = Examples.VALID_EXAMPLE_HERO)
+    )
 	)
 	@APIResponse(
 		responseCode = "400",
@@ -210,18 +259,28 @@ public class HeroResource {
 		responseCode = "404",
 		description = "No hero found"
 	)
-	public Uni<Response> partiallyUpdateHero(@Parameter(name = "id", required = true) @PathParam("id") Long id, @NotNull Hero hero) {
+	public Uni<Response> partiallyUpdateHero(
+    @Parameter(name = "id", required = true) @PathParam("id") Long id,
+    @RequestBody(
+      name = "valid_hero",
+      required = true,
+      content = @Content(
+        schema = @Schema(implementation = Hero.class),
+        examples = @ExampleObject(name = "valid_hero", value = Examples.VALID_EXAMPLE_HERO)
+      )
+    )
+    @NotNull Hero hero) {
 		if (hero.getId() == null) {
 			hero.setId(id);
 		}
 
 		return this.heroService.partialUpdateHero(hero)
 			.onItem().ifNotNull().transform(h -> {
-				this.logger.debugf("Hero updated with new values %s", h);
+				Log.debugf("Hero updated with new values %s", h);
 				return Response.ok(h).build();
 			})
-			.onItem().ifNull().continueWith(() -> {
-				this.logger.debugf("No hero found with id %d", hero.getId());
+			.replaceIfNullWith(() -> {
+				Log.debugf("No hero found with id %d", hero.getId());
 				return Response.status(Status.NOT_FOUND).build();
 			})
 			.onFailure(ConstraintViolationException.class)
@@ -236,7 +295,7 @@ public class HeroResource {
 	)
 	public Uni<Void> deleteAllHeros() {
 		return this.heroService.deleteAllHeroes()
-			.invoke(() -> this.logger.debug("Deleted all heroes"));
+			.invoke(() -> Log.debug("Deleted all heroes"));
 	}
 
 	@DELETE
@@ -248,7 +307,7 @@ public class HeroResource {
 	)
 	public Uni<Void> deleteHero(@Parameter(name = "id", required = true) @PathParam("id") Long id) {
 		return this.heroService.deleteHero(id)
-			.invoke(() -> this.logger.debugf("Hero deleted with %d", id));
+			.invoke(() -> Log.debugf("Hero deleted with %d", id));
 	}
 
 	@GET
@@ -258,11 +317,15 @@ public class HeroResource {
 	@Operation(summary = "Ping hello")
 	@APIResponse(
 		responseCode = "200",
-		description = "Ping hello"
+		description = "Ping hello",
+    content = @Content(
+      schema = @Schema(implementation = String.class),
+      examples = @ExampleObject(name = "hello_success", value = "Hello Hero Resource")
+    )
 	)
 	@NonBlocking
 	public String hello() {
-    this.logger.debug("Hello Hero Resource");
+    Log.debug("Hello Hero Resource");
 		return "Hello Hero Resource";
 	}
 }

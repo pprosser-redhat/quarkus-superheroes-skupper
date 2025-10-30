@@ -1,37 +1,70 @@
-# Superheroes and Skupper demo
+# Quarkus Superheroes Sample
 
-This demo focuses on Skupper configuration, CDC, Kafka and Integration
+## Table of Contents
+- [Introduction](#introduction)
+- [Project automation](docs/automation.md)
+    - [GitHub action automation](docs/automation.md#github-action-automation)
+    - [Application Resource Generation](docs/automation.md#application-resource-generation)
+- [Running Locally via Docker Compose](#running-locally-via-docker-compose)
+- [Deploying to Kubernetes](#deploying-to-kubernetes)
+    - [Routing](#routing)
+    - [Versions](#versions)
+    - [Monitoring](#monitoring)
+    - [Jaeger](#jaeger)
+- [Deploying to Azure Container Apps](docs/deploying-to-azure-containerapps.md)
 
 ## Introduction
 
-The purpose of this demo is to show how easy it is to setup Skupper. I choose to use the Superheroes demo because its microservice architecure. It makes it very to use Skupper with.
+This is a sample application demonstrating Quarkus features and best practices. The application allows superheroes to fight against supervillains. The application consists of several microservices, communicating either synchronously via REST or asynchronously using Kafka. All the data used by the applications are [on the `characterdata` branch](https://github.com/quarkusio/quarkus-super-heroes/tree/characterdata) of this repository.
 
-The demo uses 2 OpenShift clusters, really doesn't matter which or where you deploy them. Clearly, the bigger the seperation, the more effective the demo is. I also use a local database running on my laptop.
-The base JVM version for all the applications is Java 17.
+This is **NOT** the workshop with the step-by-step instructions. If you are looking for the Quarkus Super Heroes workshop, you can find it at https://quarkus.io/quarkus-workshops/super-heroes/.
+
+This is **NOT** a single multi-module project. Each service in the system is its own sub-directory of this parent directory. As such, each individual service needs to be run on its own.
+
+The base JVM version for all the applications is Java 21.
 
 - [Super Hero Battle UI](ui-super-heroes)
-    - An Angular application to pick up a random superhero, a random supervillain, and makes them fight.
+    - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_ui-super-heroes&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_ui-super-heroes) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_ui-super-heroes&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_ui-super-heroes) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_ui-super-heroes&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_ui-super-heroes) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_ui-super-heroes&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_ui-super-heroes) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_ui-super-heroes&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_ui-super-heroes) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_ui-super-heroes&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_ui-super-heroes)
+    - A React application to pick up a random superhero, a random supervillain, a random location, and makes them fight. Then optionally use AI to perform a narration of the fight.
     - Served with [Quarkus Quinoa](https://quarkiverse.github.io/quarkiverse-docs/quarkus-quinoa/dev/index.html)
 - [Villain REST API](rest-villains)
-    - A classical HTTP microservice exposing CRUD operations on Villains, stored in a PostgreSQL database.
+   - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-villains&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-villains) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-villains&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-villains) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-villains&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-villains) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-villains&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-villains) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-villains&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-villains) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-villains&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-villains)
+   - A classical HTTP microservice exposing CRUD operations on Villains, stored in a PostgreSQL database.
     - Implemented with blocking endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive) and [Quarkus Hibernate ORM with Panache's active record pattern](https://quarkus.io/guides/hibernate-orm-panache).
     - Favors field injection of beans (`@Inject` annotation) over construction injection.
     - Uses the [Quarkus Qute templating engine](https://quarkus.io/guides/qute) for its [UI](rest-villains/README.md#running-the-application).
     - Contains [contract verification tests](rest-villains/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
 - [Hero REST API](rest-heroes)
+    - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-heroes&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-heroes) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-heroes&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-heroes) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-heroes&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-heroes) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-heroes&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-heroes) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-heroes&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-heroes) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-heroes&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-heroes)
     - A reactive HTTP microservice exposing CRUD operations on Heroes, stored in a PostgreSQL database.
     - Implemented with reactive endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive) and [Quarkus Hibernate Reactive with Panache's repository pattern](http://quarkus.io/guides/hibernate-reactive-panache).
     - Favors constructor injection of beans over field injection (`@Inject` annotation).
     - Uses the [Quarkus Qute templating engine](https://quarkus.io/guides/qute) for its [UI](rest-heroes/README.md#running-the-application).
     - Contains [contract verification tests](rest-heroes/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
+- [Narration REST API](rest-narration)
+    - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-narration&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-narration) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-narration&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-narration) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-narration&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-narration) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-narration&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-narration) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-narration&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-narration) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-narration&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-narration)
+    - A blocking HTTP microservice integrating with [OpenAI](https://openai.com/) or [Azure OpenAI Service](https://azure.microsoft.com/en-us/products/ai-services/openai-service) to narrate a fight.
+    - Implemented with blocking endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive).
+    - Favors constructor injection of beans over field injection (`@Inject` annotation).
+    - Contains [contract verification tests](rest-narration/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
+    - Uses the [Quarkus WireMock extension](https://docs.quarkiverse.io/quarkus-wiremock/dev/index.html) in development mode so that live calls that cost real money are not being made.
+- [Location gRPC API](grpc-locations)
+    - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_grpc-locations&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_grpc-locations) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_grpc-locations&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_grpc-locations) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_grpc-locations&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_grpc-locations) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_grpc-locations&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_grpc-locations) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_grpc-locations&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_grpc-locations) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_grpc-locations&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_grpc-locations)
+    - A blocking microservice with [gRPC](https://quarkus.io/guides/grpc) operations exposing CRUD operations on Locations, stored in a MariaDB database.
+    - Completely written in [Kotlin](https://quarkus.io/guides/kotlin).
+    - Implemented with blocking endpoints using [Quarkus Hibernate ORM with Panache and Kotlin's repository pattern](https://quarkus.io/guides/hibernate-orm-panache-kotlin#using-the-repository-pattern).
+    - Favors constructor injection of beans over field injection (`@Inject` annotation).
 - [Fight REST API](rest-fights)
+    - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-fights&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-fights) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-fights&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-fights) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-fights&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-fights) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-fights&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-fights) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-fights&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-fights) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_rest-fights&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_rest-fights)
     - A REST API invoking the Hero and Villain APIs to get a random superhero and supervillain. Each fight is then stored in a MongoDB database.
+    - Invokes the [Narration API](rest-narration) to narrate the result of a fight.
     - Implemented with reactive endpoints using [RESTEasy Reactive](https://quarkus.io/guides/resteasy-reactive) and [Quarkus MongoDB Reactive with Panache's active record pattern](https://quarkus.io/guides/mongodb-panache#reactive).
     - Invocations to the Hero and Villain APIs are done using the [reactive rest client](https://quarkus.io/guides/rest-client-reactive) and are protected using [resilience patterns](https://quarkus.io/guides/smallrye-fault-tolerance), such as retry, timeout, and circuit breaking.
     - Each fight is asynchronously sent, via Kafka, to the [Statistics](event-statistics) microservice.
         - Messages on Kafka use [Apache Avro](https://avro.apache.org/docs/current) schemas and are stored in an [Apicurio Registry](https://www.apicur.io/registry), all using [built-in support from Quarkus](https://quarkus.io/guides/kafka-schema-registry-avro).
     - Contains [consumer contract and contract verification tests](rest-fights/README.md#contract-testing-with-pact) using [Pact](https://pact.io).
 - [Statistics](event-statistics)
+    - [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_event-statistics&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_event-statistics) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_event-statistics&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_event-statistics) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_event-statistics&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_event-statistics) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_event-statistics&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_event-statistics) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_event-statistics&metric=coverage)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_event-statistics) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=quarkusio-quarkus-super-heroes_event-statistics&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=quarkusio-quarkus-super-heroes_event-statistics)
     - Calculates statistics about each fight and serves them to an HTML + JQuery UI using [WebSockets](https://quarkus.io/guides/websockets).
 - [Prometheus](https://prometheus.io/)
     - Polls metrics from all the services within the system.
@@ -43,636 +76,112 @@ The base JVM version for all the applications is Java 17.
 Here is an architecture diagram of the application:
 ![Superheroes architecture diagram](images/application-architecture.png)
 
-Here is how the distribution will be set up:
-![Network distribution diagram](images/crc-arch.png)
-I have chosen to split the villain service out on to a seperate cluster using Skupper and exposing the service. 
+The main UI allows you to pick one random Hero and Villain by clicking on _New Fighters_. Then, click _Fight!_ to start the battle. The table at the bottom shows the list of previous fights.
 
-For the Heroes service.... I have hosted a mysql DB on my laptop that containes a table with the data in.
+You can then click the _Narrate Fight_ button if you want to perform a narration using the [Narration Service](rest-narration).
 
-The demo will use a Skupper Gateway to expose the mysql DB to the Skupper Virutal application network.
+> [!CAUTION]
+> Using Azure OpenAI or OpenAI may not be a free resource for you, so please understand this! Unless configured otherwise, the [Narration Service](rest-narration) does **NOT** communicate with any external service. Instead, by default, it just returns a default narration. See the [Integration with OpenAI Providers](rest-narration/README.md#integration-with-openai-providers) for more details.
 
-Having exposed the database, Debezium is used to replicated the database, and then replicate changes to Kafka (either running on the OpenShift cluster, or usinf RHOSAK).
+![Fight screen](images/fight-screen.png)
 
-A small Camel K Integration will read the messages from Kafka and route them to the Postgres DB, allowing the full application to work.
+https://github.com/quarkusio/quarkus-super-heroes/assets/363447/55a0a63f-c636-4719-9a7b-9a9034116e77
 
-## Setting up the Demo
+## Running Locally via Docker Compose
+Pre-built images for all of the applications in the system can be found at [`quay.io/quarkus-super-heroes`](http://quay.io/quarkus-super-heroes).
 
-### Deploy 2 OpenShift clusters
+Pick one of the 4 versions of the application from the table below and execute the appropriate docker compose command from the `quarkus-super-heroes` directory.
 
-Choose one of the 2 clusters to host the Superheroes fight game. Typically choose the most public cluster if you have one.
+> [!NOTE]
+> You may see errors as the applications start up. This may happen if an application completes startup before one of its required services (i.e. database, kafka, etc). This is fine. Once everything completes startup things will work fine.
+>
+> There is a [`watch-services.sh`](scripts/watch-services.sh) script that can be run in a separate terminal that will watch the startup of all the services and report when they are all up and ready to serve requests. 
+>
+> Run `scripts/watch-services.sh -h` for details about its usage.
 
-I'm normally using AWS hosted and demolab
+| Description | Image Tag       | Docker Compose Run Command                                               | Docker Compose Run Command with Monitoring                                                                       |
+|-------------|-----------------|--------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| JVM Java 21 | `java21-latest` | `docker compose -f deploy/docker-compose/java21.yml up --remove-orphans` | `docker compose -f deploy/docker-compose/java21.yml -f deploy/docker-compose/monitoring.yml up --remove-orphans` |
+| Native      | `native-latest` | `docker compose -f deploy/docker-compose/native.yml up --remove-orphans` | `docker compose -f deploy/docker-compose/native.yml -f deploy/docker-compose/monitoring.yml up --remove-orphans` |
 
-### Deploy the demo
+> [!TIP]
+> If your system does not have the `compose` sub-command, you can try the above commands with the `docker-compose` command instead of `docker compose`.
 
-Clone this repo so you can run the commands locally
+Once started the main application will be exposed at `http://localhost:8080`. If you want to watch the [Event Statistics UI](event-statistics), that will be available at `http://localhost:8085`. The Apicurio Registry will be available at `http://localhost:8086`.
 
-#### Create the superheroes namespace in the public cluster
+If you launched the monitoring stack, Prometheus will be available at `http://localhost:9090` and Jaeger will be available at `http://localhost:16686`.
 
-```
-oc new-project superheroes
-```
+## Deploying to Kubernetes
+Pre-built images for all of the applications in the system can be found at [`quay.io/quarkus-super-heroes`](http://quay.io/quarkus-super-heroes).
 
-#### Deploy the application into the superheroes namespace
+Deployment descriptors for these images are provided in the [`deploy/k8s`](deploy/k8s) directory. There are versions for [OpenShift](https://www.openshift.com), [Minikube](https://quarkus.io/guides/deploying-to-kubernetes#deploying-to-minikube), [Kubernetes](https://www.kubernetes.io), and [Knative](https://knative.dev).
 
-* clone the repository
+> [!NOTE]
+> The [Knative](https://knative.dev/docs/) variant can be used on any Knative installation that runs on top of Kubernetes or OpenShift. For OpenShift, you need [OpenShift Serverless](https://docs.openshift.com/serverless/latest/about/about-serverless.html) installed from the OpenShift operator catalog. Using Knative has the benefit that services are scaled down to zero replicas when they are not used.
 
-  ```
-  git clone https://github.com/pprosser-redhat/quarkus-super-heroes.git
-  ```
+The only real difference between the Minikube and Kubernetes descriptors is that all the application `Service`s in the Minikube descriptors use `type: NodePort` so that a list of all the applications can be obtained simply by running `minikube service list`.
 
-* deploy the whole application into the superheroes namespace
+> [!NOTE]
+> If you'd like to deploy each application directly from source to Kubernetes, please follow the guide located within each application's folder (i.e. [`event-statistics`](event-statistics/README.md#deploying-directly-via-kubernetes-extensions), [`rest-fights`](rest-fights/README.md#deploying-directly-via-kubernetes-extensions), [`rest-heroes`](rest-heroes/README.md#deploying-directly-via-kubernetes-extensions), [`rest-villains`](rest-villains/README.md#deploying-directly-via-kubernetes-extensions), [`rest-narration`](rest-narration/README.md#deploying-directly-via-kubernetes-extensions), [`grpc-locations`](grpc-locations/README.md#deploying-directly-via-kubernetes-extensions)).
 
-   cd to the root of the cloned project
+### Routing
+Both the Minikube and Kubernetes descriptors also assume there is an [Ingress Controller](https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/) installed and configured. There is a single `Ingress` in the Minikube and Kubernetes descriptors denoting `/` and `/api/fights` paths. You may need to add/update the `host` field in the `Ingress` as well in order for things to work.
 
-   ```
-   oc apply -f deploy/k8s/native-openshift.yml
-   ```
+Both the [`ui-super-heroes`](ui-super-heroes) and the [`rest-fights`](rest-fights) applications need to be exposed from outside the cluster. On Minikube and Kubernetes, the [`ui-super-heroes`](ui-super-heroes) Angular application communicates back to the same host and port as where it was launched from under the `/api/fights` path. [See the routing section in the UI project](ui-super-heroes/README.md#routing) for more details.
 
-   remove the villain service so it can be deployed in the other cluster
+On OpenShift, the URL containing the `ui-super-heroes` host name is replaced with `rest-fights`. This is because the OpenShift descriptors use `Route` objects for gaining external access to the application. In most cases, no manual updating of the OpenShift descriptors is needed before deploying the system. Everything should work as-is.
 
-   ```
-   oc delete all -l app.kubernetes.io/part-of=villains-service
-   ```
+Additionally, there is also a `Route` for the [`event-statistics`](event-statistics) application. On Minikube or Kubernetes, you will need to expose the [`event-statistics`](event-statistics) application, either by using an `Ingress` or doing a `kubectl port-forward`. The [`event-statistics`](event-statistics) application runs on port `8085`.
 
-* deploy the villain service to the 2nd OpenShift cluster
+### Versions
+Pick one of the 4 versions of the system from the table below and deploy the appropriate descriptor from the [`deploy/k8s` directory](deploy/k8s). Each descriptor contains all of the resources needed to deploy a particular version of the entire system.
 
-  oc to the second cluster
+> [!WARNING]
+> These descriptors are **NOT** considered to be production-ready. They are basic enough to deploy and run the system with as little configuration as possible. The databases, Kafka broker, and schema registry deployed are not highly-available and do not use any Kubernetes operators for management or monitoring. They also only use ephemeral storage.
+>
+> For production-ready Kafka brokers, please see the [Strimzi documentation](https://strimzi.io/) for how to properly deploy and configure production-ready Kafka brokers on Kubernetes. You can also try out a [fully hosted and managed Kafka service](https://developers.redhat.com/products/red-hat-openshift-streams-for-apache-kafka/getting-started)!
+>
+> For a production-ready Apicurio Schema Registry, please see the [Apicurio Registry Operator documentation](https://www.apicur.io/registry/docs/apicurio-registry-operator/1.0.0/index.html). You can also try out a [fully hosted and managed Schema Registry service](https://console.redhat.com/application-services/service-registry)!
 
-  create a new namespace 
+| Description | Image Tag       | OpenShift Descriptor                                      | Minikube Descriptor                                     | Kubernetes Descriptor                                       | Knative Descriptor                                    |
+|-------------|-----------------|-----------------------------------------------------------|---------------------------------------------------------|-------------------------------------------------------------|-------------------------------------------------------|
+| JVM Java 21 | `java21-latest` | [`java21-openshift.yml`](deploy/k8s/java21-openshift.yml) | [`java21-minikube.yml`](deploy/k8s/java21-minikube.yml) | [`java21-kubernetes.yml`](deploy/k8s/java21-kubernetes.yml) | [`java21-knative.yml`](deploy/k8s/java21-knative.yml) |
+| Native      | `native-latest` | [`native-openshift.yml`](deploy/k8s/native-openshift.yml) | [`native-minikube.yml`](deploy/k8s/native-minikube.yml) | [`native-kubernetes.yml`](deploy/k8s/native-kubernetes.yml) | [`native-knative.yml`](deploy/k8s/native-knative.yml) |
 
-  ```
-  oc new-project villains
-  ```
+### Monitoring
+There are also Kubernetes deployment descriptors for monitoring with [OpenTelemetry](https://opentelemetry.io), [Prometheus](https://prometheus.io), and [Jaeger](https://www.jaegertracing.io) in the [`deploy/k8s` directory](deploy/k8s) ([`monitoring-openshift.yml`](deploy/k8s/monitoring-openshift.yml), [`monitoring-minikube.yml`](deploy/k8s/monitoring-minikube.yml), [`monitoring-kubernetes.yml`](deploy/k8s/monitoring-kubernetes.yml)). Each descriptor contains the resources necessary to monitor and gather metrics and traces from all of the applications in the system. Deploy the appropriate descriptor to your cluster if you want it.
 
-  deploy the villain service
+The OpenShift descriptor will automatically create `Route`s for Prometheus and Jaeger. On Kubernetes/Minikube you may need to expose the Prometheus and Jaeger services in order to access them from outside your cluster, either by using an `Ingress` or by using `kubectl port-forward`. On Minikube, the Prometheus and Jaeger `Service`s are also exposed as a `NodePort`.
 
-  ```
-  oc apply -f rest-villains/deploy/k8s/native-java17-kubernetes.yml
-  ```
+> [!WARNING]
+> These descriptors are **NOT** considered to be production-ready. They are basic enough to deploy Prometheus, Jaeger, and the [OpenTelemetry Collector](https://opentelemetry.io/docs/collector) with as little configuration as possible. They are not highly-available and do not use any Kubernetes operators for management or monitoring. They also only use ephemeral storage.
+>
+> For production-ready Prometheus instances, please see the [Prometheus Operator documentation](https://operatorhub.io/operator/prometheus) for how to properly deploy and configure production-ready instances. 
+>
+> For production-ready Jaeger instances, please see the [Jaeger Operator documentation](https://operatorhub.io/operator/jaeger) for how to properly deploy and configure production-ready instances.
+>
+> For production-ready OpenTelemetry Collector instances, please see the [OpenTelemetry Operator documentation](https://operatorhub.io/operator/opentelemetry-operator) for how to properly deploy and configure production-ready instances.
 
-  Demo code should all now be deployed
+### Jaeger
 
-# Demo Instructions
+By now you've performed a few battles, so let's analyze the telemetry data.
+Open the Jaeger UI based on how you are running the system, either through Docker Compose or by deploying the monitoring stack to kubernetes.
 
-## Get the fight app up (URL will be different of course)
+![Jaeger Filters](images/jaeger-1-inputs.png)
 
-```
-http://ui-super-heroes-superheroes.apps.rosa-zjs4n.tvaf.p1.openshiftapps.com/
-```
+Now, let's analyze the traces for when requesting new fighters.
+When clicking the **New Fighters** button in the Superheroes UI, the browser makes an HTTP request to the `/api/fights/randomfighters` endpoint within the `rest-fights` application.
+In the Jaeger UI, select `rest-fights` for the Service and `/api/fights/randomfighters` for the Operation, then click **Find Traces**.
+You should see all the traces corresponding to the request of getting new fighters.
 
-## Clear demo Heroes
+![Jaeger Filters](images/jaeger-2-list-traces.png)
 
-Make sure the hero data is deleted from the hero pod on rosa\
-
-```
-psql --dbname=heroes_database --username=superman --password
-```
-```
-delete from hero;
-```
-
-## Initialise Skupper in each namespace
-
-```
-skupper init --site-name rosa --enable-console --enable-flow-collector --console-auth openshift
-```
-```
-skupper init --site-name intel --enable-console --enable-flow-collector --console-auth openshift
-```
-
-## Link the sites together (most private to the most public)
-
-Can do this in the consoles as well if you want 
-
-In rosa window
-```
-skupper token create ~/rosa.yaml -t cert --name rosa
-```
-In intel window
-```
-skupper link create ~/rosa.yaml
-```
-
-## Expose  the villain service on the intel side
-
-```
-skupper expose deployment rest-villains --port 8084 --protocol http
-```
-Check the game, villains should start appearing.... might need to refresh the page.
-
-## Get data from my laptop by defining a skupper gateway on the rosa node
-
-```
-skupper gateway init --type podman
-```
-
-## Expose my database
-
-```
-skupper gateway expose philsmysql 10.0.2.2 3306 --protocol tcp --type podman
-```
-
-Test that I can connect to to DB, in a mysql pod on either cluster
-
-```
-mysql --host=philsmysql --port 3306 --user=phil --password=phil
-```
-```
-select id, name, othername from phil.hero;
-```
-
-## Setup debezium to capture data
-
-### Kafka Cluster:
-```
-apiVersion: kafka.strimzi.io/v1beta2
-kind: Kafka
-metadata:
-  name: my-cluster
-spec:
-  entityOperator:
-    topicOperator: {}
-    userOperator: {}
-  kafka:
-    config:
-      offsets.topic.replication.factor: 1
-      transaction.state.log.replication.factor: 1
-      transaction.state.log.min.isr: 1
-      default.replication.factor: 1
-      min.insync.replicas: 1
-      inter.broker.protocol.version: '3.4'
-      delete.topic.enabled: true
-    listeners:
-      - name: plain
-        port: 9092
-        tls: false
-        type: internal
-      - name: tls
-        port: 9093
-        tls: true
-        type: internal
-    replicas: 1
-    storage:
-      type: persistent-claim
-      size: 1Gi
-      deleteClaim: true
-    metricsConfig:
-      type: jmxPrometheusExporter
-      valueFrom:
-        configMapKeyRef:
-          name: kafka-metrics
-          key: kafka-metrics-config.yml
-    version: 3.4.0
-  zookeeper:
-    replicas: 1
-    storage:
-      type: persistent-claim
-      size: 1Gi
-      deleteClaim: true
-    metricsConfig:
-      type: jmxPrometheusExporter
-      valueFrom:
-        configMapKeyRef:
-          name: kafka-metrics
-          key: zookeeper-metrics-config.yml
-  kafkaExporter:
-  topicRegex: ".*"
-  groupRegex: ".*"
-
-```
-### Kafka Connect Cluster
-
-
-Note: Make sure you create the imagestream. The build will just wait if you don't
-
-
-```
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaConnect
-metadata:
-  name: my-connect-cluster
-  annotations:
-    strimzi.io/use-connector-resources: "true"
-spec:
-  bootstrapServers: 'my-cluster-kafka-bootstrap:9093'
-  metricsConfig:
-    type: jmxPrometheusExporter
-    valueFrom:
-      configMapKeyRef:
-        name: connect-metrics
-        key: metrics-config.yml
-  replicas: 1
-  config:
-    group.id: connect-cluster
-    offset.storage.topic: connect-cluster-offsets
-    config.storage.topic: connect-cluster-configs
-    status.storage.topic: connect-cluster-status
-    config.storage.replication.factor: 1
-    offset.storage.replication.factor: 1
-    status.storage.replication.factor: 1
-  tls:
-    trustedCertificates:
-      - certificate: ca.crt
-        secretName: my-cluster-cluster-ca-cert
-  version: 3.4.0
-  build:
-    output:
-      type: imagestream
-      image: debezium-connector-image:latest
-    plugins:
-      - name: debezium-mysql-connector
-        artifacts:
-          - type: zip
-            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-mysql/2.1.4.Final-redhat-00001/debezium-connector-mysql-2.1.4.Final-redhat-00001-plugin.zip 
-      - name: debezium-postgres-connector
-        artifacts:
-          - type: zip
-            url: https://maven.repository.redhat.com/ga/io/debezium/debezium-connector-postgres/2.1.4.Final-redhat-00001/debezium-connector-postgres-2.1.4.Final-redhat-00001-plugin.zip
-```
-## Deploy the Kafka Connector
-
-```
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaConnector
-metadata:
-  name: phils-connector  
-  labels:
-    strimzi.io/cluster: my-connect-cluster
-spec:
-  class: io.debezium.connector.mysql.MySqlConnector
-  tasksMax: 1  
-  config:
-    snapshot.mode: when_needed
-    database.hostname: philsmysql  
-    database.port: 3306
-    database.user: phil
-    database.password: phil
-    database.server.id: 18999  
-    database.server.name: philsmac  
-    database.include.list: phil
-    schema.history.internal.kafka.bootstrap.servers: my-cluster-kafka-bootstrap:9092  
-    schema.history.internal.kafka.topic: schema-changes.phil
-    topic.prefix: philsmac
-```
-
-## Deploy the integration to replicate the data
-
-```
-kamel run camelkfordebezium/crudlegacyheroes.yaml
-```
-
-## To monitor the Kafka Topic
-
-```
-oc exec -it my-cluster-kafka-0 -- /opt/kafka/bin/kafka-console-consumer.sh \
-  --bootstrap-server localhost:9092 \
-  --from-beginning \
-  --topic philsmac.phil.hero
-```
-
-## Terminal window. 
-
-Create a terminal window like this:
-
-![Terminal window layout](images/cli.png)
-
-I have created an arrangement on my laptop to speed this up.
-
-In the demolab window, type
-
-```
-export KUBECONFIG=$HOME/.kube/config-coffee
-```
-
-In the AWS ROSA window type 
-
-```
-export KUBECONFIG=$HOME/.kube/config-rosa
-```
-
-## Building in Kafka Monitoring into the demo if you want it 
-
-Need to firstly enable OpenShift user project monitoring - follow docs
-
-Next, need to deploy the Strimzi metrics configmap 
-
-```
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: kafka-metrics
-  labels:
-    app: strimzi
-data:
-  kafka-metrics-config.yml: |
-    # See https://github.com/prometheus/jmx_exporter for more info about JMX Prometheus Exporter metrics
-    lowercaseOutputName: true
-    rules:
-    # Special cases and very specific rules
-    - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), topic=(.+), partition=(.*)><>Value
-      name: kafka_server_$1_$2
-      type: GAUGE
-      labels:
-       clientId: "$3"
-       topic: "$4"
-       partition: "$5"
-    - pattern: kafka.server<type=(.+), name=(.+), clientId=(.+), brokerHost=(.+), brokerPort=(.+)><>Value
-      name: kafka_server_$1_$2
-      type: GAUGE
-      labels:
-       clientId: "$3"
-       broker: "$4:$5"
-    - pattern: kafka.server<type=(.+), cipher=(.+), protocol=(.+), listener=(.+), networkProcessor=(.+)><>connections
-      name: kafka_server_$1_connections_tls_info
-      type: GAUGE
-      labels:
-        cipher: "$2"
-        protocol: "$3"
-        listener: "$4"
-        networkProcessor: "$5"
-    - pattern: kafka.server<type=(.+), clientSoftwareName=(.+), clientSoftwareVersion=(.+), listener=(.+), networkProcessor=(.+)><>connections
-      name: kafka_server_$1_connections_software
-      type: GAUGE
-      labels:
-        clientSoftwareName: "$2"
-        clientSoftwareVersion: "$3"
-        listener: "$4"
-        networkProcessor: "$5"
-    - pattern: "kafka.server<type=(.+), listener=(.+), networkProcessor=(.+)><>(.+):"
-      name: kafka_server_$1_$4
-      type: GAUGE
-      labels:
-       listener: "$2"
-       networkProcessor: "$3"
-    - pattern: kafka.server<type=(.+), listener=(.+), networkProcessor=(.+)><>(.+)
-      name: kafka_server_$1_$4
-      type: GAUGE
-      labels:
-       listener: "$2"
-       networkProcessor: "$3"
-    # Some percent metrics use MeanRate attribute
-    # Ex) kafka.server<type=(KafkaRequestHandlerPool), name=(RequestHandlerAvgIdlePercent)><>MeanRate
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>MeanRate
-      name: kafka_$1_$2_$3_percent
-      type: GAUGE
-    # Generic gauges for percents
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*><>Value
-      name: kafka_$1_$2_$3_percent
-      type: GAUGE
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)Percent\w*, (.+)=(.+)><>Value
-      name: kafka_$1_$2_$3_percent
-      type: GAUGE
-      labels:
-        "$4": "$5"
-    # Generic per-second counters with 0-2 key/value pairs
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+), (.+)=(.+)><>Count
-      name: kafka_$1_$2_$3_total
-      type: COUNTER
-      labels:
-        "$4": "$5"
-        "$6": "$7"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*, (.+)=(.+)><>Count
-      name: kafka_$1_$2_$3_total
-      type: COUNTER
-      labels:
-        "$4": "$5"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)PerSec\w*><>Count
-      name: kafka_$1_$2_$3_total
-      type: COUNTER
-    # Generic gauges with 0-2 key/value pairs
-    - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Value
-      name: kafka_$1_$2_$3
-      type: GAUGE
-      labels:
-        "$4": "$5"
-        "$6": "$7"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Value
-      name: kafka_$1_$2_$3
-      type: GAUGE
-      labels:
-        "$4": "$5"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Value
-      name: kafka_$1_$2_$3
-      type: GAUGE
-    # Emulate Prometheus 'Summary' metrics for the exported 'Histogram's.
-    # Note that these are missing the '_sum' metric!
-    - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+), (.+)=(.+)><>Count
-      name: kafka_$1_$2_$3_count
-      type: COUNTER
-      labels:
-        "$4": "$5"
-        "$6": "$7"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*), (.+)=(.+)><>(\d+)thPercentile
-      name: kafka_$1_$2_$3
-      type: GAUGE
-      labels:
-        "$4": "$5"
-        "$6": "$7"
-        quantile: "0.$8"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.+)><>Count
-      name: kafka_$1_$2_$3_count
-      type: COUNTER
-      labels:
-        "$4": "$5"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+), (.+)=(.*)><>(\d+)thPercentile
-      name: kafka_$1_$2_$3
-      type: GAUGE
-      labels:
-        "$4": "$5"
-        quantile: "0.$6"
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)><>Count
-      name: kafka_$1_$2_$3_count
-      type: COUNTER
-    - pattern: kafka.(\w+)<type=(.+), name=(.+)><>(\d+)thPercentile
-      name: kafka_$1_$2_$3
-      type: GAUGE
-      labels:
-        quantile: "0.$4"
-    # KRaft mode: uncomment the following lines to export KRaft related metrics
-    # KRaft overall related metrics
-    # distinguish between always increasing COUNTER (total and max) and variable GAUGE (all others) metrics
-    #- pattern: "kafka.server<type=raft-metrics><>(.+-total|.+-max):"
-    #  name: kafka_server_raftmetrics_$1
-    #  type: COUNTER
-    #- pattern: "kafka.server<type=raft-metrics><>(.+):"
-    #  name: kafka_server_raftmetrics_$1
-    #  type: GAUGE
-    # KRaft "low level" channels related metrics
-    # distinguish between always increasing COUNTER (total and max) and variable GAUGE (all others) metrics
-    #- pattern: "kafka.server<type=raft-channel-metrics><>(.+-total|.+-max):"
-    #  name: kafka_server_raftchannelmetrics_$1
-    #  type: COUNTER
-    #- pattern: "kafka.server<type=raft-channel-metrics><>(.+):"
-    #  name: kafka_server_raftchannelmetrics_$1
-    #  type: GAUGE
-    # Broker metrics related to fetching metadata topic records in KRaft mode
-    #- pattern: "kafka.server<type=broker-metadata-metrics><>(.+):"
-    #  name: kafka_server_brokermetadatametrics_$1
-    #  type: GAUGE
-  zookeeper-metrics-config.yml: |
-    # See https://github.com/prometheus/jmx_exporter for more info about JMX Prometheus Exporter metrics
-    lowercaseOutputName: true
-    rules:
-    # replicated Zookeeper
-    - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+)><>(\\w+)"
-      name: "zookeeper_$2"
-      type: GAUGE
-    - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+), name1=replica.(\\d+)><>(\\w+)"
-      name: "zookeeper_$3"
-      type: GAUGE
-      labels:
-        replicaId: "$2"
-    - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+), name1=replica.(\\d+), name2=(\\w+)><>(Packets\\w+)"
-      name: "zookeeper_$4"
-      type: COUNTER
-      labels:
-        replicaId: "$2"
-        memberType: "$3"
-    - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+), name1=replica.(\\d+), name2=(\\w+)><>(\\w+)"
-      name: "zookeeper_$4"
-      type: GAUGE
-      labels:
-        replicaId: "$2"
-        memberType: "$3"
-    - pattern: "org.apache.ZooKeeperService<name0=ReplicatedServer_id(\\d+), name1=replica.(\\d+), name2=(\\w+), name3=(\\w+)><>(\\w+)"
-      name: "zookeeper_$4_$5"
-      type: GAUGE
-      labels:
-        replicaId: "$2"
-        memberType: "$3"
-```
-
-# Kafka Connect Metrics
-
-```
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: connect-metrics
-  labels:
-    app: strimzi
-data:
-  metrics-config.yml: |
-    # Inspired by kafka-connect rules
-    # https://github.com/prometheus/jmx_exporter/blob/master/example_configs/kafka-connect.yml
-    # See https://github.com/prometheus/jmx_exporter for more info about JMX Prometheus Exporter metrics
-    lowercaseOutputName: true
-    lowercaseOutputLabelNames: true
-    rules:
-    #kafka.connect:type=app-info,client-id="{clientid}"
-    #kafka.consumer:type=app-info,client-id="{clientid}"
-    #kafka.producer:type=app-info,client-id="{clientid}"
-    - pattern: 'kafka.(.+)<type=app-info, client-id=(.+)><>start-time-ms'
-      name: kafka_$1_start_time_seconds
-      labels:
-        clientId: "$2"
-      help: "Kafka $1 JMX metric start time seconds"
-      type: GAUGE
-      valueFactor: 0.001
-    - pattern: 'kafka.(.+)<type=app-info, client-id=(.+)><>(commit-id|version): (.+)'
-      name: kafka_$1_$3_info
-      value: 1
-      labels:
-        clientId: "$2"
-        $3: "$4"
-      help: "Kafka $1 JMX metric info version and commit-id"
-      type: GAUGE
-
-    #kafka.producer:type=producer-topic-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
-    #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
-    - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), topic=(.+), partition=(.+)><>(.+-total|compression-rate|.+-avg|.+-replica|.+-lag|.+-lead)
-      name: kafka_$2_$6
-      labels:
-        clientId: "$3"
-        topic: "$4"
-        partition: "$5"
-      help: "Kafka $1 JMX metric type $2"
-      type: GAUGE
-
-    #kafka.producer:type=producer-topic-metrics,client-id="{clientid}",topic="{topic}"
-    #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}",topic="{topic}"", partition="{partition}"
-    - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), topic=(.+)><>(.+-total|compression-rate|.+-avg)
-      name: kafka_$2_$5
-      labels:
-        clientId: "$3"
-        topic: "$4"
-      help: "Kafka $1 JMX metric type $2"
-      type: GAUGE
-
-    #kafka.connect:type=connect-node-metrics,client-id="{clientid}",node-id="{nodeid}"
-    #kafka.consumer:type=consumer-node-metrics,client-id=consumer-1,node-id="{nodeid}"
-    - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.+), node-id=(.+)><>(.+-total|.+-avg)
-      name: kafka_$2_$5
-      labels:
-        clientId: "$3"
-        nodeId: "$4"
-      help: "Kafka $1 JMX metric type $2"
-      type: UNTYPED
-
-    #kafka.connect:type=kafka-metrics-count,client-id="{clientid}"
-    #kafka.consumer:type=consumer-fetch-manager-metrics,client-id="{clientid}"
-    #kafka.consumer:type=consumer-coordinator-metrics,client-id="{clientid}"
-    #kafka.consumer:type=consumer-metrics,client-id="{clientid}"
-    - pattern: kafka.(.+)<type=(.+)-metrics, client-id=(.*)><>(.+-total|.+-avg|.+-bytes|.+-count|.+-ratio|.+-age|.+-flight|.+-threads|.+-connectors|.+-tasks|.+-ago)
-      name: kafka_$2_$4
-      labels:
-        clientId: "$3"
-      help: "Kafka $1 JMX metric type $2"
-      type: GAUGE
-
-    #kafka.connect:type=connector-metrics,connector="{connector}"
-    - pattern: 'kafka.(.+)<type=connector-metrics, connector=(.+)><>(connector-class|connector-type|connector-version|status): (.+)'
-      name: kafka_connect_connector_$3
-      value: 1
-      labels:
-        connector: "$2"
-        $3: "$4"
-      help: "Kafka Connect $3 JMX metric type connector"
-      type: GAUGE
-
-    #kafka.connect:type=connector-task-metrics,connector="{connector}",task="{task}<> status"
-    - pattern: 'kafka.connect<type=connector-task-metrics, connector=(.+), task=(.+)><>status: ([a-z-]+)'
-      name: kafka_connect_connector_task_status
-      value: 1
-      labels:
-        connector: "$1"
-        task: "$2"
-        status: "$3"
-      help: "Kafka Connect JMX Connector task status"
-      type: GAUGE
-
-    #kafka.connect:type=task-error-metrics,connector="{connector}",task="{task}"
-    #kafka.connect:type=source-task-metrics,connector="{connector}",task="{task}"
-    #kafka.connect:type=sink-task-metrics,connector="{connector}",task="{task}"
-    #kafka.connect:type=connector-task-metrics,connector="{connector}",task="{task}"
-    - pattern: kafka.connect<type=(.+)-metrics, connector=(.+), task=(.+)><>(.+-total|.+-count|.+-ms|.+-ratio|.+-seq-no|.+-rate|.+-max|.+-avg|.+-failures|.+-requests|.+-timestamp|.+-logged|.+-errors|.+-retries|.+-skipped)
-      name: kafka_connect_$1_$4
-      labels:
-        connector: "$2"
-        task: "$3"
-      help: "Kafka Connect JMX metric type $1"
-      type: GAUGE
-
-    #kafka.connect:type=connector-metrics,connector="{connector}"
-    #kafka.connect:type=connect-worker-metrics,connector="{connector}"
-    - pattern: kafka.connect<type=connect-worker-metrics, connector=(.+)><>([a-z-]+)
-      name: kafka_connect_worker_$2
-      labels:
-        connector: "$1"
-      help: "Kafka Connect JMX metric $1"
-      type: GAUGE
-
-    #kafka.connect:type=connect-worker-metrics
-    - pattern: kafka.connect<type=connect-worker-metrics><>([a-z-]+)
-      name: kafka_connect_worker_$1
-      help: "Kafka Connect JMX metric worker"
-      type: GAUGE
-
-    #kafka.connect:type=connect-worker-rebalance-metrics
-    - pattern: kafka.connect<type=connect-worker-rebalance-metrics><>([a-z-]+)
-      name: kafka_connect_worker_rebalance_$1
-      help: "Kafka Connect JMX metric rebalance information"
-      type: GAUGE
-```
+Then, select one trace.
+A trace consists of a series of spans.
+Each span is a time interval representing a unit of work.
+Spans can have a parent/child relationship and form a hierarchy.
+You can see that each trace contains 14 total spans:
+six spans in the `rest-fights` application, four spans in the `rest-heroes` application, and four spans in the `rest-villains` application.
+Each trace also provides the total round-trip time of the request into the `/api/fights/randomfighters` endpoint within the `rest-fights` application and the total time spent within each unit of work.
+
+![Jaeger Filters](images/jaeger-3-trace.png)

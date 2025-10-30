@@ -35,13 +35,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.sample.superheroes.fight.schema.Fight;
-import io.quarkus.sample.superheroes.statistics.domain.TeamScore;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 import io.quarkus.test.kafka.InjectKafkaCompanion;
 import io.quarkus.test.kafka.KafkaCompanionResource;
+
+import io.quarkus.sample.superheroes.fight.schema.Fight;
+import io.quarkus.sample.superheroes.statistics.domain.TeamScore;
 
 import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -67,8 +68,8 @@ import io.vertx.core.Vertx;
  * </p>
  */
 @QuarkusIntegrationTest
-@QuarkusTestResource(value = KafkaCompanionResource.class, restrictToAnnotatedClass = true)
-public class WebSocketsIT {
+@WithTestResource(KafkaCompanionResource.class)
+class WebSocketsIT {
 	private static final String HERO_NAME = "Chewbacca";
 	private static final String HERO_TEAM_NAME = "heroes";
 	private static final String VILLAIN_TEAM_NAME = "villains";
@@ -104,7 +105,7 @@ public class WebSocketsIT {
   }
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     // Configure Avro Serde for Fight
     companion.setCommonClientConfig(Map.of(AvroKafkaSerdeConfig.AVRO_DATUM_PROVIDER, ReflectAvroDatumProvider.class.getName()));
     Serde<Fight> serde = Serdes.serdeFrom(new AvroKafkaSerializer<>(), new AvroKafkaDeserializer<>());
@@ -113,7 +114,7 @@ public class WebSocketsIT {
   }
 
 	@Test
-	public void testScenarios() throws DeploymentException, IOException {
+	void testScenarios() throws DeploymentException, IOException {
 		// Set up the Queues to handle the messages
 		var teamStatsMessages = new LinkedBlockingQueue<String>();
 		var topWinnerMessages = new LinkedBlockingQueue<String>();
@@ -134,7 +135,8 @@ public class WebSocketsIT {
       companion.produce(Fight.class)
         .fromRecords(sampleFights.stream()
           .map(fight -> new ProducerRecord<String, Fight>("fights", fight))
-          .collect(Collectors.toList()));
+          .toList()
+        );
 
 			// Wait for our messages to appear in the queue
 			await()
@@ -263,7 +265,7 @@ public class WebSocketsIT {
   }
 
 	private static String createScoreJsonString(String name, int score) {
-		return String.format("{\"name\":\"%s\",\"score\":%d}", name, score);
+		return "{\"name\":\"%s\",\"score\":%d}".formatted(name, score);
 	}
 
 	private static List<Fight> createSampleFights() {
@@ -290,7 +292,7 @@ public class WebSocketsIT {
 				}
 
 				return fight.build();
-			}).collect(Collectors.toList());
+			}).toList();
 	}
 
 	@ClientEndpoint

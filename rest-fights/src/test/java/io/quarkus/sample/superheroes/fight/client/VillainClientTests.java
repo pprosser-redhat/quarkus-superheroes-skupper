@@ -16,10 +16,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.sample.superheroes.fight.HeroesVillainsWiremockServerResource;
-import io.quarkus.sample.superheroes.fight.InjectWireMock;
-import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+
+import io.quarkus.sample.superheroes.fight.HeroesVillainsNarrationWiremockServerResource;
+import io.quarkus.sample.superheroes.fight.InjectWireMock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,10 +31,10 @@ import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 
 /**
  * Tests for the {@link io.quarkus.sample.superheroes.fight.client.VillainClient}. Uses wiremock to stub responses and verify interactions.
- * @see io.quarkus.sample.superheroes.fight.HeroesVillainsWiremockServerResource
+ * @see HeroesVillainsNarrationWiremockServerResource
  */
 @QuarkusTest
-@QuarkusTestResource(HeroesVillainsWiremockServerResource.class)
+@WithTestResource(HeroesVillainsNarrationWiremockServerResource.class)
 class VillainClientTests {
   private static final String VILLAIN_API_BASE_URI = "/api/villains";
   private static final String VILLAIN_RANDOM_URI = VILLAIN_API_BASE_URI + "/random";
@@ -65,18 +66,18 @@ class VillainClientTests {
   CircuitBreakerMaintenance circuitBreakerMaintenance;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     this.wireMockServer.resetAll();
   }
 
   @AfterEach
-  public void afterEach() {
+  void afterEach() {
     // Reset all circuit breaker counts after each test
     this.circuitBreakerMaintenance.resetAll();
   }
 
   @Test
-  public void findsRandom() {
+  void findsRandom() {
     this.wireMockServer.stubFor(
       get(urlEqualTo(VILLAIN_RANDOM_URI))
         .willReturn(okForContentType(APPLICATION_JSON, getDefaultVillainJson()))
@@ -92,18 +93,7 @@ class VillainClientTests {
 
         assertThat(villain)
           .isNotNull()
-          .extracting(
-            Villain::getName,
-            Villain::getLevel,
-            Villain::getPicture,
-            Villain::getPowers
-          )
-          .containsExactly(
-            DEFAULT_VILLAIN_NAME,
-            DEFAULT_VILLAIN_LEVEL,
-            DEFAULT_VILLAIN_PICTURE,
-            DEFAULT_VILLAIN_POWERS
-          );
+          .isEqualTo(DEFAULT_VILLAIN);
       });
 
     this.wireMockServer.verify(5,
@@ -113,7 +103,7 @@ class VillainClientTests {
   }
 
   @Test
-  public void recoversFrom404() {
+  void recoversFrom404() {
     this.wireMockServer.stubFor(
       get(urlEqualTo(VILLAIN_RANDOM_URI))
         .willReturn(notFound())
@@ -134,7 +124,7 @@ class VillainClientTests {
   }
 
   @Test
-  public void doesntRecoverFrom500() {
+  void doesntRecoverFrom500() {
     this.wireMockServer.stubFor(
       get(urlEqualTo(VILLAIN_RANDOM_URI))
         .willReturn(serverError())
@@ -171,7 +161,7 @@ class VillainClientTests {
     assertThat(ex)
       .isNotNull()
       .isExactlyInstanceOf(CircuitBreakerOpenException.class)
-      .hasMessageContainingAll(String.format("%s#findRandomVillain", VillainClient.class.getName()), "circuit breaker is open");
+      .hasMessageContainingAll("%s#findRandomVillain".formatted(VillainClient.class.getName()), "circuit breaker is open");
 
     // Verify that the breaker is open
     assertThat(this.circuitBreakerMaintenance.currentState("findRandomVillain"))
@@ -186,7 +176,7 @@ class VillainClientTests {
   }
 
   @Test
-  public void helloVillains() {
+  void helloVillains() {
     this.wireMockServer.stubFor(
       get(urlEqualTo(VILLAIN_HELLO_URI))
         .willReturn(okForContentType(TEXT_PLAIN, DEFAULT_HELLO_RESPONSE))

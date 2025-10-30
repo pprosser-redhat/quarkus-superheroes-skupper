@@ -8,7 +8,7 @@ metadata:
     application: heroes-service
     system: quarkus-super-heroes
 data:
-  quarkus.hibernate-orm.database.generation: validate
+  quarkus.hibernate-orm.schema-management.strategy: validate
   quarkus.hibernate-orm.sql-load-script: no-file
   quarkus.datasource.reactive.url: postgresql://heroes-db:5432/heroes_database
   quarkus.otel.exporter.otlp.traces.endpoint: http://otel-collector:4317
@@ -36,9 +36,9 @@ metadata:
     application: heroes-service
     system: quarkus-super-heroes
 data:
-  POSTGRESQL_DATABASE: aGVyb2VzX2RhdGFiYXNl
-  POSTGRESQL_USERNAME: c3VwZXJtYW4=
-  POSTGRESQL_PASSWORD: c3VwZXJtYW4=
+  POSTGRES_DB: aGVyb2VzX2RhdGFiYXNl
+  POSTGRES_USER: c3VwZXJtYW4=
+  POSTGRES_PASSWORD: c3VwZXJtYW4=
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -89,7 +89,7 @@ spec:
             - name: heroes-db-init-data
               mountPath: /docker-entrypoint-initdb.d
       containers:
-        - image: bitnami/postgresql:14
+        - image: postgres:18
           name: heroes-db
           ports:
             - containerPort: 5432
@@ -98,7 +98,7 @@ spec:
                 name: heroes-db-config
           volumeMounts:
             - name: heroes-db-data
-              mountPath: /bitnami/postgresql
+              mountPath: /var/lib/postgresql
             - name: heroes-db-init-data
               mountPath: /docker-entrypoint-initdb.d
           resources:

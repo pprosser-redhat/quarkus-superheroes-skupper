@@ -1,8 +1,8 @@
 package io.quarkus.sample.superheroes.statistics.endpoint;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.websocket.server.ServerEndpoint;
+
+import io.quarkus.websockets.next.WebSocket;
 
 import io.quarkus.sample.superheroes.statistics.domain.TeamScore;
 
@@ -15,8 +15,7 @@ import io.smallrye.mutiny.Multi;
  * </p>
  * @see TeamStatsChannelHolder
  */
-@ServerEndpoint("/stats/team")
-@ApplicationScoped
+@WebSocket(path = "/stats/team")
 public class TeamStatsWebSocket extends EventStatsWebSocket<TeamScore> {
 	@Inject
 	TeamStatsChannelHolder teamStatsChannelHolder;

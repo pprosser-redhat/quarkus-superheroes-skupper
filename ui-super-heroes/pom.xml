@@ -1,21 +1,27 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.quarkus.sample.super-heroes</groupId>
   <artifactId>ui-super-heroes</artifactId>
   <version>1.0</version>
   <name>Quarkus Sample :: Super-Heroes :: User Interface</name>
+  <description>The user interface</description>
   <properties>
-    <compiler-plugin.version>3.11.0</compiler-plugin.version>
-    <maven.compiler.release>17</maven.compiler.release>
+    <assertj.version>3.27.6</assertj.version>
+    <compiler-plugin.version>3.14.1</compiler-plugin.version>
+    <maven.compiler.release>21</maven.compiler.release>
+    <microcks.version>0.4.2</microcks.version>
+    <jacoco.version>0.8.14</jacoco.version>
+    <junit5.tree.reporter.version>1.5.1</junit5.tree.reporter.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.1.1.Final</quarkus.platform.version>
-    <quinoa.version>2.0.5</quinoa.version>
-    <surefire-plugin.version>3.1.2</surefire-plugin.version>
+    <quarkus.platform.version>3.28.5</quarkus.platform.version>
+    <quarkus.playwright.version>2.2.1</quarkus.playwright.version>
+    <quinoa.version>2.6.2</quinoa.version>
+    <surefire-plugin.version>3.5.4</surefire-plugin.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -40,11 +46,11 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-reactive</artifactId>
+      <artifactId>quarkus-rest</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+      <artifactId>quarkus-rest-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -66,13 +72,23 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
     </dependency>
-        <dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-opentelemetry</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-info</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.github.microcks.quarkus</groupId>
+      <artifactId>quarkus-microcks</artifactId>
+      <version>${microcks.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -93,6 +109,18 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkiverse.playwright</groupId>
+      <artifactId>quarkus-playwright</artifactId>
+      <version>${quarkus.playwright.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -125,16 +153,41 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>me.fabriciorby</groupId>
+            <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+            <version>${junit5.tree.reporter.version}</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <systemPropertyVariables>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
+          <reportFormat>plain</reportFormat>
+          <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter">
+            <printStacktraceOnError>true</printStacktraceOnError>
+            <printStacktraceOnFailure>true</printStacktraceOnFailure>
+            <printStdoutOnError>true</printStdoutOnError>
+            <printStdoutOnFailure>true</printStdoutOnFailure>
+            <printStdoutOnSuccess>false</printStdoutOnSuccess>
+            <printStderrOnError>true</printStderrOnError>
+            <printStderrOnFailure>true</printStderrOnFailure>
+            <printStderrOnSuccess>false</printStderrOnSuccess>
+          </statelessTestsetInfoReporter>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>me.fabriciorby</groupId>
+            <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+            <version>${junit5.tree.reporter.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <goals>
@@ -146,7 +199,19 @@
                 <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                 <maven.home>${maven.home}</maven.home>
+                <quarkus.test.arg-line>${argLine}</quarkus.test.arg-line>
               </systemPropertyVariables>
+              <reportFormat>plain</reportFormat>
+              <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter">
+                <printStacktraceOnError>true</printStacktraceOnError>
+                <printStacktraceOnFailure>true</printStacktraceOnFailure>
+                <printStdoutOnError>true</printStdoutOnError>
+                <printStdoutOnFailure>true</printStdoutOnFailure>
+                <printStdoutOnSuccess>false</printStdoutOnSuccess>
+                <printStderrOnError>true</printStderrOnError>
+                <printStderrOnFailure>true</printStderrOnFailure>
+                <printStderrOnSuccess>false</printStderrOnSuccess>
+              </statelessTestsetInfoReporter>
             </configuration>
           </execution>
         </executions>
@@ -162,8 +227,66 @@
         </property>
       </activation>
       <properties>
-        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.enabled>true</quarkus.native.enabled>
+        <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
       </properties>
     </profile>
+    <profile>
+      <id>it-coverage</id>
+      <activation>
+        <property>
+          <name>it-coverage</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+              <execution>
+                <id>default-prepare-agent-integration</id>
+                <goals>
+                  <goal>prepare-agent-integration</goal>
+                </goals>
+                <configuration>
+                  <destFile>${project.build.directory}/jacoco-quarkus.exec</destFile>
+                  <append>true</append>
+                </configuration>
+              </execution>
+              <execution>
+                <id>report</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${project.build.directory}/jacoco-quarkus.exec</dataFile>
+                  <outputDirectory>${project.build.directory}/jacoco-report</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
+  <organization>
+    <name>Quarkus</name>
+    <url>https://quarkus.io</url>
+  </organization>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/quarkusio/quarkus-super-heroes/issues</url>
+  </issueManagement>
+  <ciManagement>
+    <system>GitHub</system>
+    <url>https://github.com/quarkusio/quarkus-super-heroes/actions</url>
+  </ciManagement>
+  <scm>
+    <url>https://github.com/quarkusio/quarkus-super-heroes</url>
+    <connection>scm:git:git://github.com/quarkusio/quarkus-super-heroes.git</connection>
+    <developerConnection>scm:git:git://github.com/quarkusio/quarkus-super-heroes.git</developerConnection>
+  </scm>
 </project>

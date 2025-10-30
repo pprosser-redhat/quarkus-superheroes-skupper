@@ -1,7 +1,6 @@
 package io.quarkus.sample.superheroes.statistics.endpoint;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.websocket.server.ServerEndpoint;
+import io.quarkus.websockets.next.WebSocket;
 
 import io.quarkus.sample.superheroes.statistics.domain.Score;
 
@@ -14,8 +13,7 @@ import io.smallrye.mutiny.Multi;
  * </p>
  * @see TopWinnerStatsChannelHolder
  */
-@ServerEndpoint("/stats/winners")
-@ApplicationScoped
+@WebSocket(path = "/stats/winners")
 public class TopWinnerWebSocket extends EventStatsWebSocket<Iterable<Score>> {
 	private final TopWinnerStatsChannelHolder topWinnerStatsChannelHolder;
 
