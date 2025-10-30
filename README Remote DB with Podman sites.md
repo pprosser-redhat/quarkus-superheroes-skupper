@@ -132,7 +132,13 @@ It should fail (the service cannot access it's DB)
 For podman site
 
 ```
-skupper init --site-name mylaptop-podman --ingress-host rhel9
+skupper system install
+```
+```
+skupper site create my-laptop-podman
+```
+```
+skupper system reload
 ```
 
 
@@ -140,44 +146,28 @@ skupper init --site-name mylaptop-podman --ingress-host rhel9
 
 For AWS
 ```
-skupper init --site-name aws --enable-console --enable-flow-collector --console-auth unsecured
+skupper site create aws --enable-link-access
 ```
 For Azure 
 ```
-skupper init --site-name azure
+skupper site create azure --enable-link-access
 ```
 
 ## Generate tokens for both AWS and Azure
 
+In the VM, make sure you are in the tokens folder. This ensures sharing of the tokens between the SSH sessions.
+
 In AWS window
 ```
-skupper token create podman-aws.yaml --name podman-aws
+skupper token issue podman-aws.yaml
 ```
 
 In Azure window
 ```
-skupper token create podman-azure.yaml --name podman-azure
+skupper token issue podman-azure.yaml
 ```
 
-Copy the tokens to the VM
 
-I'm using a VM running with Virtual box and shared folders to make the tokens automatically available in the VM
-
-In my local terminals windows I
-
-```
-cd /Users/{username}/rhsi
-```
-
-before  generating token.
-
-To use the tokens in the VM, I 
-
-```
-cd /home/{username}/rhsi
-```
-
-to pick up the new tokens
 
 
 ## Link the sites together (most private to the most public)
@@ -189,18 +179,25 @@ AWS <---------- My Laptop ----------> Azure
 
 In Virtual machine window link podman to AWS
 ```
-skupper link create --name podman-to-aws podman-aws.yaml
+skupper token redeem podman-aws.yaml
 ```
-
+```
+skupper system reload
+```
 Make sure the link has been established by running (in the VM)
 
 ```
 skupper link status
 ```
+
 In Virtual machine window link podman to Azure
 ```
-skupper link create --name podman-to-azure podman-azure.yaml
+skupper token redeem podman-azure.yaml
 ```
+```
+skupper system reload
+```
+
 Make sure the link has been established by running (in the VM)
 
 ```
@@ -211,12 +208,21 @@ Check what the sites look like in the RHSI console
 
 Make sure the superheroes ui is still falling back
 
-## Expose  the villain service on the AWS side
+## Expose  the villain service on the Villains side
 
 Link up the Villains service so that the superheroes ui starts showing real villains
 
 ```
-skupper expose deployment rest-villains --port 8084 --protocol tcp
+skupper connector create rest-villains 8084 --workload deployment/rest-villains
+```
+```
+skupper connector status
+```
+
+On the other cluster, create the listener
+
+```
+skupper listener create rest-villains 8084
 ```
 
 If you want, an alternative way to expose is by defining an annotation to the deployment
@@ -233,25 +239,40 @@ Check the game, villains should start appearing.... might need to refresh the pa
 
 If running in a VM in another env, need to work out IP
 ```
-skupper expose host 10.0.2.2 --port 5432 --target-port 5432 --address heroes-db
+skupper connector create heroes-db 5432 --host 10.0.2.2
+```
+```
+skupper system reload
 ```
 
 Run (might need to run it a few times - it's creating the pods)
 
 ```
-skupper service status
+skupper connector status
 ```
 
-## Create the service in the Azure OpenShift (skupper podman does not automatically do this)
+The reload means you need to wait for the links to come back up.
 
 ```
-skupper service create heroes-db 5432
+skupper link status
+```
+
+## Create the service in the Superheroes OpenShift
+
+```
+skupper listener create heroes-db 5432
 ```
 
 ## For fun, you can make the villains api available to the VM to curl to it
 
 ```
-skupper service create rest-villains 8084 --host-ip 192.168.58.4  --host-port 8084
+skupper listener create rest-villains 8084 --host 192.168.58.4
+```
+```
+skupper system reload 
+```
+```
+skupper links status
 ```
 
 On the command line do a curl 
