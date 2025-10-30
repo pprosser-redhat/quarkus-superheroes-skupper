@@ -13,6 +13,10 @@ If the demo is really trying to show the sending of TCP messages over non-routea
 
 Ensure that both RHSI Operators are installed in the clusters
 
+
+Make sure you have installed the RHSI Network Observer into the Superheroes project
+
+
 Create a namespace in OpenShift called superheroes.
 
 ```
