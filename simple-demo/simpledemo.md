@@ -75,17 +75,6 @@ Create a namespace called router-site
 oc new-project router-site
 ```
 
-If you want to move villian out as well to performa a rest call over skupper, then create a rest-villains namespace
-
-```
-oc new-project rest-villains
-```
-
-Deploy rest-villains in the rest-villains namespace
-
-
-Delete rest-villains from the superheroes namespace
-
 To save confusion, use 3  terminals
 
 Far right terminal - Superheroes
