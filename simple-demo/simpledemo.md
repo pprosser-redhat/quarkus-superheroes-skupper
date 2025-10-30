@@ -235,7 +235,7 @@ Use the OpenShift terminal window
 Install Skupper on OpenShift 
 
 ```
-skupper site create superheroes --enable-link-access
+skupper site create superheroes
 ```
 
 Confirm the sites status
