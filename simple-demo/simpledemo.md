@@ -31,6 +31,10 @@ To enable us to suport the remote database, lets remove the heroes database from
 oc delete all -l app=heroes-db
 oc delete all -l name=heroes-db
 ```
+
+If you think you want to do some SQL testing as well, make sure you have install a PSQL DB so you can get access to the CLI
+
+
 ## Direct Connection
 
 This demo will use an OpenShift Cluster and a VM running Podman sites on my laptop
