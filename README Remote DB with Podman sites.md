@@ -25,6 +25,12 @@ A small Camel K Integration will read the messages from Kafka and route them to 
 
 ## Setting up the Demo
 
+This demo using the following 
+
+AWS <---------- My Laptop ----------> Azure
+
+Everything routes through the laptop..
+
 ### Deploy 2 OpenShift clusters
 
 Choose one of the 2 clusters to host the Superheroes fight game. Typically choose the most public cluster if you have one.
