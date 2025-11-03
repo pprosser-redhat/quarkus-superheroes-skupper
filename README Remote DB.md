@@ -2,6 +2,12 @@
 
 This demo focuses on Skupper configuration, Service Federatation and Remote database
 
+Updated to RHSIL 2.1
+
+Connection 
+
+My Laptop <---------- Azure ----------> AWS
+
 ## Introduction
 
 The purpose of this demo is to show how easy it is to setup Skupper. I choose to use the Superheroes demo because its microservice architecure. It makes it very to use Skupper with.
@@ -54,8 +60,10 @@ oc new-project superheroes
    cd to the root of the cloned project
 
    ```
-   oc apply -f deploy/k8s/native-openshift.yml
+   oc apply -f deploy/k8s/java21-openshift.yml
    ```
+
+   If you see problems with the fight service starting , try switching the fights-db to recreate update strategy and restart rollouts.
 
    remove the villain service so it can be deployed in the other cluster
 
@@ -63,10 +71,10 @@ oc new-project superheroes
    oc delete all -l app.kubernetes.io/part-of=villains-service
    ```
 
-   remove the heroes database
+   remove the heroes service so it can be deployed in the other cluster
+
    ```
-   oc delete all -l app=heroes-db
-   oc delete all -l name=heroes-db 
+   oc delete all -l app.kubernetes.io/part-of=heroes-service
    ```
 
    update the "rest-heroes-config" configmap
@@ -90,8 +98,21 @@ oc new-project superheroes
   deploy the villain service
 
   ```
-  oc apply -f rest-villains/deploy/k8s/native-java17-kubernetes.yml
+  oc apply -f rest-villains/deploy/k8s/native-kubernetes.yml
   ```
+
+    deploy the villain service
+
+  ```
+  oc apply -f rest-heroes/deploy/k8s/native-kubernetes.yml
+  ```
+
+     remove the heroes database
+
+   ```
+   oc delete all -l app=heroes-db
+   oc delete all -l name=heroes-db 
+   ```
 
   Demo code should all now be deployed
 
@@ -107,6 +128,16 @@ For the on premises env use :-
 ```
 export KUBECONFIG=$HOME/.kube/config-coffee
 ```
+Don't for to set your skupper platform in the terminal windows
+```
+export SKUPPER_PLATFORM=kubernetes
+```
+
+2. RHEL Skupper
+
+```
+export SKUPPER_PLATFORM=podman
+```
 
 # Demo Instructions
 
@@ -119,43 +150,130 @@ http://ui-super-heroes-superheroes.apps.rosa-zjs4n.tvaf.p1.openshiftapps.com/
 ## Initialise Skupper in each namespace
 
 ```
-skupper init --site-name rosa --enable-console --enable-flow-collector --console-auth openshift
+skupper site create rosa --enable-link-access
 ```
+If not already done, install the network observer for monitoring using the operator
 ```
-skupper init --site-name intel
+skupper site create intel
 ```
 
 ## Link the sites together (most private to the most public)
-
-Can do this in the consoles as well if you want 
+ 
 
 In rosa window
 ```
-skupper token create ~/rosa.yaml -t cert --name rosa
+skupper token issue rosa.yaml
 ```
 In intel window
 ```
-skupper link create --name intel-to-rosa  ~/rosa.yaml
+skupper token redeem rosa.yaml
 ```
-
+```
+skupper link status
+```
 ## Expose  the villain service on the intel side
 
+On the Villains side
 ```
-skupper expose deployment rest-villains --port 8084 --protocol http
+skupper connector create rest-villains 8084 --workload deployment/rest-villains
 ```
+Check connector status
+
+On the Superhereos side
+
+```
+skupper listener create rest-villains 8084
+```
+
+Check listener status
+
 Check the game, villains should start appearing.... might need to refresh the page.
 
-## Get data from my laptop by defining a skupper gateway on the rosa node
+## Get data from my laptop by defining a skupper podman site and connect to rosa node
+
+Before we can expose the heroes-service to the superheroes app, we need to fix up access to the heroes-db running on the laptop
 
 ```
-skupper gateway init --type podman
+skupper system install
 ```
+```
+skupper site create laptop
+```
+```
+skupper system reload
+```
+```
+skupper site status
+```
+
+## Link the sites (laptop to rosa) together (most private to the most public)
+ 
+
+In rosa window
+```
+skupper token issue laptop.yaml
+```
+In intel window
+```
+skupper token redeem laptop.yaml
+```
+```
+skupper system reload
+```
+```
+skupper link status
+```
+
 
 ## Expose my database
 
+on the laptop
 ```
-skupper gateway expose heroes-db 10.0.2.2 5432 --protocol tcp --type podman
+skupper connector create heroes-db 5432 --host 10.0.2.2
 ```
+```
+skupper system reload
+```
+
+Check connector status
+
+```
+skupper connector status
+```
+
+Check links status
+
+```
+skupper link status
+```
+
+In the villains Openshift, define the listener
+
+```
+skupper listener create heroes-db 5432
+```
+
+```
+skupper listener status
+```
+
+## Expose  the Heroes service on the intel side
+
+On the Villains side
+```
+skupper connector create rest-heroes 8083 --workload deployment/rest-heroes
+```
+Check connector status
+
+On the Superhereos side
+
+```
+skupper listener create rest-heroes 8083
+```
+
+Check listener status
+
+Check the game, villains should start appearing.... might need to refresh the page.
 
 
 ## note for using podman sites, if you use a podman site to expose the DB then it doesn't seen to like working through vbox gateway to using postgres in the VM. Connection this way looks like 

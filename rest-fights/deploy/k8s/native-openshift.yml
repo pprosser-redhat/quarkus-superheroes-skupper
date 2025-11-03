@@ -215,9 +215,9 @@ spec:
             - containerPort: 27017
           resources:
             limits:
-              memory: 256Mi
+              memory: 512Mi
             requests:
-              memory: 64Mi
+              memory: 128Mi
           volumeMounts:
             - mountPath: /data/db
               name: fights-db-data
