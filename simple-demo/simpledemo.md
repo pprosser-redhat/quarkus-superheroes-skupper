@@ -103,7 +103,7 @@ oc project router-site
 ```
 set the contenxt
 ```
-export KUBECONFIG=$HOME/.kube/config-router
+export KUBECONFIG=$HOME/.kube/config-villains
 ```
 Then login into the cluster
 
