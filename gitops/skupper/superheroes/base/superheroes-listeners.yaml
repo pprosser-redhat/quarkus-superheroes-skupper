@@ -1,0 +1,20 @@
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: rest-villains
+spec:
+  host: rest-villains
+  port: 8084
+  routingKey: rest-villains
+  type: tcp
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: heroes-db
+spec:
+  host: heroes-db
+  port: 5432
+  routingKey: heroes-db
+  type: tcp

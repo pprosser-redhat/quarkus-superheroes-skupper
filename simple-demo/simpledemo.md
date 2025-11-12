@@ -36,6 +36,21 @@ oc delete all -l app=heroes-db
 oc delete all -l name=heroes-db
 ```
 
+Remove villians for remote access to Villains 
+
+   remove the villain service so it can be deployed in the other cluster
+
+   ```
+   oc delete all -l app.kubernetes.io/part-of=villains-service
+   ```
+
+
+  deploy the villain service in the villains namespace
+
+  ```
+  oc apply -f rest-villains/deploy/k8s/native-kubernetes.yml
+  ```
+
 If you think you want to do some SQL testing as well, make sure you have install a PSQL DB so you can get access to the CLI
 
 

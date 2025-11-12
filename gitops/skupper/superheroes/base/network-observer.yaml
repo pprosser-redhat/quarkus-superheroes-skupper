@@ -1,0 +1,86 @@
+apiVersion: observability.skupper.io/v2alpha1
+kind: NetworkObserver
+metadata:
+  name: rhsi-console
+spec:
+  skipManagementLabels: false
+  podLabels: {}
+  resources: {}
+  fullnameOverride: ''
+  auth:
+    basic:
+      create: true
+      secretName: ''
+    openshift:
+      cookieSecretName: ''
+      createCookieSecret: true
+      serviceAccount:
+        create: true
+        nameOverride: ''
+    strategy: openshift
+  route:
+    enabled: true
+  router:
+    certificate:
+      create: true
+      nameOverride: ''
+    endpoint: 'amqps://skupper-router-local'
+  prometheus:
+    pullPolicy: IfNotPresent
+    repository: registry.redhat.io/openshift4/ose-prometheus-rhel9
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    tag: v4.16.0
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  extraArgs: null
+  openshiftOauthProxy:
+    pullPolicy: IfNotPresent
+    repository: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    tag: v4.19.0
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  ingress:
+    annotations: {}
+    className: ''
+    enabled: false
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+  service:
+    port: 443
+    type: ClusterIP
+  nameOverride: ''
+  nginx:
+    pullPolicy: IfNotPresent
+    repository: registry.redhat.io/ubi9/nginx-124
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+    tag: 9.6
+  tls:
+    openshiftIssued: true
+    secretName: ''
+    skupperIssued: false
+  image:
+    pullPolicy: Always
+    repository: registry.redhat.io/service-interconnect/skupper-network-observer-rhel9
+    tag: 2.1.1
+  podAnnotations: {}
