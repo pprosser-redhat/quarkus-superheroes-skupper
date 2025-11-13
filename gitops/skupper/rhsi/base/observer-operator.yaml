@@ -1,11 +1,13 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: observer-operator
+  labels:
+    operators.coreos.com/skupper-netobs-operator.openshift-operators: ''
+  name: skupper-netobs-operator
 spec:
   channel: stable-2
   installPlanApproval: Automatic
-  name: skupper-operator
+  name: skupper-netobs-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: skupper-network-observer-operator.v2.1.2-rh-2
+  startingCSV: skupper-netobs-operator.v2.1.2-rh-2
