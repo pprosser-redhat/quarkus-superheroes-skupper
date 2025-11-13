@@ -9,4 +9,4 @@ spec:
   name: skupper-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-  startingCSV: skupper-network-observer-operator.v2.1.1-rh-8
+  startingCSV: skupper-network-observer-operator.v2.1.2-rh-2
