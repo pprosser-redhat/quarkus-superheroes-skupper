@@ -6,7 +6,7 @@ metadata:
   name: skupper-netobs-operator
 spec:
   channel: stable-2
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
   name: skupper-netobs-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
