@@ -1,8 +1,9 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
+  labels:
+    operators.coreos.com/skupper-operator.openshift-operators: ''
   name: skupper-operator
-  namespace: openshift-operators
 spec:
   channel: stable-2
   installPlanApproval: Automatic
